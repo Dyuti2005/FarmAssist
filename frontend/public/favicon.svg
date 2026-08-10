@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Background Circle matches reference exactly -->
+  <circle cx="50" cy="50" r="50" fill="#F4F9F1"/>
+  
+  <clipPath id="circle-clip">
+    <circle cx="50" cy="50" r="50"/>
+  </clipPath>
+  
+  <g clip-path="url(#circle-clip)">
+    <!-- Base field backdrop (Lightest) -->
+    <path d="M-10 65 Q50 45 110 65 L110 110 L-10 110 Z" fill="#A8D5A0"/>
+    
+    <!-- Outer green stripes -->
+    <path d="M-10 65 L20 110 L-10 110 Z" fill="#82C479"/>
+    <path d="M110 65 L80 110 L110 110 Z" fill="#82C479"/>
+    
+    <!-- Mid green stripes -->
+    <path d="M3 62 L40 110 L20 110 Z" fill="#5EA95A"/>
+    <path d="M97 62 L60 110 L80 110 Z" fill="#5EA95A"/>
+    
+    <!-- Inner radiating field stripes -->
+    <path d="M25 55 L50 110 L40 110 Z" fill="#82C479"/>
+    <path d="M75 55 L50 110 L60 110 Z" fill="#82C479"/>
+    
+    <path d="M40 50 L55 110 L45 110 Z" fill="#429546"/>
+
+    <!-- Subtle darker rim on the hill line -->
+    <path d="M-10 65 Q50 45 110 65 Q50 48 -10 65" fill="#317936"/>
+
+    <!-- Sprouting Stem -->
+    <path d="M49 61 Q49 46 51 46" stroke="#2B6B2F" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    
+    <!-- Large Right Leaf Core & Shadow -->
+    <path d="M49 53 Q70 26 62 14 Q52 24 49 47 Z" fill="#71BC68"/>
+    <path d="M49 53 Q57 26 62 14 Q58 24 49 47 Z" fill="#4B9A47"/>
+    
+    <!-- Small Left Leaf Core & Shadow -->
+    <path d="M51 48 Q28 40 30 33 Q38 24 50 42 Z" fill="#8CCF84"/>
+    <path d="M51 48 Q37 38 30 33 Q34 28 50 42 Z" fill="#5EA056"/>
+  </g>
+</svg>

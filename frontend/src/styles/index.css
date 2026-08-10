@@ -1,0 +1,47 @@
+/* Color Palette provided by user:
+Lightest Background: #F7FCF5
+Very Light Green: #E5F5E0
+Light Green: #C7E9C0
+Soft Green: #A1D99B
+Medium Green: #74C476
+Primary Green: #41AB5D
+Dark Green: #238B45
+Deep Forest Green: #005A32
+White: #FFFFFF
+*/
+
+:root {
+  --color-bg-lightest: #F7FCF5;
+  --color-green-very-light: #E5F5E0;
+  --color-green-light: #C7E9C0;
+  --color-green-soft: #A1D99B;
+  --color-green-medium: #74C476;
+  --color-green-primary: #41AB5D;
+  --color-green-dark: #238B45;
+  --color-green-deep: #005A32;
+  --color-white: #FFFFFF;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--color-bg-lightest);
+  color: var(--color-green-deep);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
