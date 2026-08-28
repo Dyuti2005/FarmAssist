@@ -16,9 +16,9 @@ export default function Dashboard() {
                     <p style={{ color: 'var(--color-green-dark)', fontSize: '0.95rem', fontWeight: 500, marginTop: '4px' }}>{t('farm_overview_subtitle')}</p>
                 </div>
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <div style={{ backgroundColor: 'var(--color-white)', padding: '10px', borderRadius: '50%', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', border: '1px solid var(--color-green-very-light)' }}>
+                    <Link to="/assistant" style={{ backgroundColor: 'var(--color-white)', padding: '10px', borderRadius: '50%', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', border: '1px solid var(--color-green-very-light)', display: 'flex' }}>
                         <Mic color="var(--color-green-primary)" size={22} />
-                    </div>
+                    </Link>
                     <div style={{ backgroundColor: 'var(--color-white)', padding: '10px', borderRadius: '50%', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', border: '1px solid var(--color-green-very-light)' }}>
                         <Bell color="var(--color-green-primary)" size={22} />
                     </div>

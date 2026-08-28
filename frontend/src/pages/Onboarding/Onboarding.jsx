@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function Onboarding() {
+    const { t, lang, setLanguage } = useLanguage();
     const [step, setStep] = useState(1);
     const navigate = useNavigate();
 
@@ -14,59 +16,195 @@ export default function Onboarding() {
     };
 
     const steps = [
-        { title: "01 — PROFILE", label: "Basic Profile" },
-        { title: "02 — FARM", label: "Farm Details" },
-        { title: "03 — CROP", label: "Primary Crop" },
-        { title: "04 — PREFERENCES", label: "Preferences" }
+        { title: t('ob_step1') || "01 — PROFILE", label: t('ob_step1_label') || "Basic Profile" },
+        { title: t('ob_step2') || "02 — FARM", label: t('ob_step2_label') || "Farm Details" },
+        { title: t('ob_step3') || "03 — CROP", label: t('ob_step3_label') || "Primary Crop" },
+        { title: t('ob_step4') || "04 — PREFERENCES", label: t('ob_step4_label') || "Preferences" }
     ];
 
+    const inputStyle = {
+        width: '100%', padding: '14px 16px', borderRadius: '12px',
+        border: '1px solid var(--color-green-very-light)',
+        backgroundColor: 'var(--color-bg-lightest)',
+        color: 'var(--color-green-deep)', fontSize: '1rem', fontWeight: 600,
+        boxSizing: 'border-box'
+    };
+
+    const labelStyle = {
+        display: 'block', fontSize: '0.95rem', fontWeight: 800,
+        color: 'var(--color-green-dark)', marginBottom: '10px'
+    };
+
     return (
-        <div style={{ backgroundColor: 'var(--color-bg-lightest)', minHeight: '100vh', padding: '24px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ marginBottom: '32px', marginTop: '24px' }}>
-                <h2 style={{ color: 'var(--color-green-deep)', fontWeight: 800 }}>Profile Setup</h2>
-                <p style={{ color: 'var(--color-green-dark)' }}>Tell us about your farm to personalize insights.</p>
-            </div>
+        <div style={{ backgroundColor: 'var(--color-bg-lightest)', minHeight: '100vh', padding: '60px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '32px' }}>
-                {steps.map((s, idx) => (
-                    <div key={idx} style={{ flex: 1 }}>
-                        <div style={{
-                            height: '4px',
-                            backgroundColor: idx < step ? 'var(--color-green-primary)' : 'var(--color-green-very-light)',
-                            borderRadius: '2px',
-                            marginBottom: '8px'
-                        }} />
-                        <div style={{ fontSize: '0.7rem', fontWeight: 700, color: idx < step ? 'var(--color-green-deep)' : 'var(--color-green-medium)' }}>
-                            {s.title}
+            <div style={{ width: '100%', maxWidth: '900px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+
+                <div style={{ marginBottom: '48px', textAlign: 'center' }}>
+                    <h2 style={{ color: 'var(--color-green-deep)', fontWeight: 900, fontSize: '2.4rem', marginBottom: '12px' }}>{t('ob_setup_title') || "Profile Setup"}</h2>
+                    <p style={{ color: 'var(--color-green-dark)', fontSize: '1.1rem', fontWeight: 500, margin: 0 }}>{t('ob_setup_subtitle') || "Tell us about your farm to personalize insights."}</p>
+                </div>
+
+                <div style={{ display: 'flex', gap: '16px', marginBottom: '48px' }}>
+                    {steps.map((s, idx) => (
+                        <div key={idx} style={{ flex: 1 }}>
+                            <div style={{
+                                height: '8px',
+                                backgroundColor: idx < step ? 'var(--color-green-primary)' : 'var(--color-white)',
+                                border: idx >= step ? '1px solid var(--color-green-very-light)' : 'none',
+                                borderRadius: '4px',
+                                marginBottom: '16px',
+                                transition: 'all 0.3s ease'
+                            }} />
+                            <div style={{ fontSize: '0.85rem', fontWeight: 800, color: idx < step ? 'var(--color-green-deep)' : 'var(--color-green-medium)', letterSpacing: '0.05em' }}>
+                                {s.title}
+                            </div>
                         </div>
+                    ))}
+                </div>
+
+                <div style={{ backgroundColor: 'var(--color-white)', padding: '48px', borderRadius: '24px', boxShadow: '0 8px 32px rgba(0,0,0,0.04)', border: '1px solid var(--color-green-very-light)' }}>
+                    <h3 style={{ color: 'var(--color-green-deep)', fontSize: '1.6rem', fontWeight: 800, marginBottom: '32px' }}>{steps[step - 1].label}</h3>
+
+                    {step === 1 && (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 1fr) minmax(250px, 1fr)', gap: '32px' }}>
+                            <div>
+                                <label style={labelStyle}>{t('ob_farmer_name') || "Farmer Name"}</label>
+                                <input style={{ ...inputStyle, backgroundColor: '#F8FAF8', color: 'var(--color-green-medium)' }} value="Ram Singh" readOnly />
+                            </div>
+                            <div>
+                                <label style={labelStyle}>{t('ob_language') || "Preferred Language"}</label>
+                                <select style={inputStyle} value={lang} onChange={(e) => setLanguage(e.target.value)}>
+                                    <option value="en">English</option>
+                                    <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                                    <option value="hi">हिन्दी (Hindi)</option>
+                                </select>
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 2 && (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 1fr) minmax(250px, 1fr)', gap: '32px' }}>
+                            <div>
+                                <label style={labelStyle}>{t('ob_location') || "Farm Location"}</label>
+                                <input style={inputStyle} defaultValue={t('ob_opt_sehore') || "Sehore, Madhya Pradesh"} />
+                            </div>
+                            <div>
+                                <label style={labelStyle}>{t('ob_farm_size') || "Farm Size"}</label>
+                                <select style={inputStyle} defaultValue="5">
+                                    <option value="5">{t('ob_opt_acres5') || "5 Acres"}</option>
+                                    <option value="10">{t('ob_opt_acres10') || "10 Acres"}</option>
+                                    <option value="15">{t('ob_opt_acres15') || "15 Acres"}</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style={labelStyle}>{t('ob_soil_type') || "Soil Type"}</label>
+                                <select style={inputStyle} defaultValue="black_cotton">
+                                    <option value="black_cotton">{t('ob_opt_black_cotton') || "Black Cotton Soil"}</option>
+                                    <option value="alluvial">{t('ob_opt_alluvial') || "Alluvial Soil"}</option>
+                                    <option value="red_laterite">{t('ob_opt_red_laterite') || "Red Laterite Soil"}</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style={labelStyle}>{t('ob_irrigation') || "Irrigation Method"}</label>
+                                <select style={inputStyle} defaultValue="drip">
+                                    <option value="drip">{t('ob_opt_drip') || "Drip Irrigation"}</option>
+                                    <option value="rainfed">{t('ob_opt_rainfed') || "Rainfed"}</option>
+                                    <option value="canal">{t('ob_opt_canal') || "Canal Irrigation"}</option>
+                                </select>
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 3 && (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 1fr) minmax(250px, 1fr)', gap: '32px' }}>
+                            <div>
+                                <label style={labelStyle}>{t('ob_primary_crop') || "Primary Crop"}</label>
+                                <input style={inputStyle} defaultValue={t('ob_opt_wheat') || "Premium Sharbati Wheat"} />
+                            </div>
+                            <div>
+                                <label style={labelStyle}>{t('ob_crop_variety') || "Crop Variety"}</label>
+                                <input style={inputStyle} defaultValue={t('ob_opt_var306') || "Sharbati 306"} />
+                            </div>
+                            <div>
+                                <label style={labelStyle}>{t('ob_sowing_date') || "Sowing Date"}</label>
+                                <input type="month" style={inputStyle} defaultValue="2023-11" />
+                            </div>
+                            <div>
+                                <label style={labelStyle}>{t('ob_harvest_date') || "Expected Harvest Date"}</label>
+                                <input type="month" style={inputStyle} defaultValue="2024-03" />
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 4 && (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 1fr) minmax(250px, 1fr)', gap: '32px' }}>
+                            <div style={{ gridColumn: '1 / -1' }}>
+                                <label style={labelStyle}>{t('ob_notif_pref') || "Notification Preference"}</label>
+                                <select style={inputStyle} defaultValue="whatsapp">
+                                    <option value="whatsapp">{t('ob_opt_wa') || "WhatsApp"}</option>
+                                    <option value="sms">{t('ob_opt_sms') || "SMS"}</option>
+                                    <option value="in_app">{t('ob_opt_inapp') || "In-App Alerts"}</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style={labelStyle}>{t('ob_insights_del') || "Insights Delivery"}</label>
+                                <select style={inputStyle} defaultValue="weekly">
+                                    <option value="weekly">{t('ob_opt_weekly') || "Weekly Report"}</option>
+                                    <option value="daily">{t('ob_opt_daily') || "Daily Summary"}</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style={labelStyle}>{t('ob_insights_focus') || "Insights Focus"}</label>
+                                <select style={inputStyle} defaultValue="weather">
+                                    <option value="weather">{t('ob_opt_weather') || "Weather & Alerts"}</option>
+                                    <option value="market">{t('ob_opt_market') || "Market Prices"}</option>
+                                    <option value="pest">{t('ob_opt_pest') || "Pest Alerts"}</option>
+                                </select>
+                            </div>
+                        </div>
+                    )}
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '48px', gap: '16px' }}>
+                        {step > 1 && (
+                            <button
+                                onClick={() => setStep(step - 1)}
+                                style={{
+                                    padding: '16px 32px',
+                                    borderRadius: '16px',
+                                    backgroundColor: 'transparent',
+                                    color: 'var(--color-green-dark)',
+                                    fontSize: '1.05rem',
+                                    fontWeight: 700,
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    marginRight: 'auto'
+                                }}
+                            >
+                                {t('back') || "Back"}
+                            </button>
+                        )}
+                        <button
+                            onClick={handleNext}
+                            style={{
+                                padding: '16px 48px',
+                                borderRadius: '16px',
+                                backgroundColor: 'var(--color-green-deep)',
+                                color: 'var(--color-white)',
+                                fontSize: '1.05rem',
+                                fontWeight: 800,
+                                border: 'none',
+                                cursor: 'pointer',
+                                boxShadow: '0 8px 24px rgba(0, 90, 50, 0.15)',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            {step < 4 ? (t('ob_continue') || "Continue") : (t('ob_finish') || "Finish")}
+                        </button>
                     </div>
-                ))}
-            </div>
 
-            <div style={{ flex: 1, backgroundColor: 'var(--color-white)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)', border: '1px solid var(--color-green-very-light)' }}>
-                <h3 style={{ color: 'var(--color-green-dark)', marginBottom: '24px' }}>{steps[step - 1].label}</h3>
-                {/* Placeholder UI for form fields */}
-                <div style={{ height: '48px', backgroundColor: 'var(--color-green-very-light)', borderRadius: '8px', marginBottom: '16px', opacity: 0.5 }}></div>
-                <div style={{ height: '48px', backgroundColor: 'var(--color-green-very-light)', borderRadius: '8px', marginBottom: '16px', opacity: 0.5 }}></div>
-                <div style={{ height: '48px', backgroundColor: 'var(--color-green-very-light)', borderRadius: '8px', opacity: 0.5 }}></div>
+                </div>
             </div>
-
-            <button
-                onClick={handleNext}
-                style={{
-                    marginTop: '32px',
-                    width: '100%',
-                    padding: '16px',
-                    borderRadius: '12px',
-                    backgroundColor: 'var(--color-green-deep)',
-                    color: 'var(--color-white)',
-                    fontSize: '1.1rem',
-                    fontWeight: 700,
-                    boxShadow: '0 4px 12px rgba(0, 90, 50, 0.2)'
-                }}
-            >
-                {step < 4 ? 'CONTINUE' : 'FINISH'}
-            </button>
         </div>
     );
 }

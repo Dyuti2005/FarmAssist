@@ -2,15 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Mic, X, Check, RefreshCw, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { speakText } from '../../services/voice/speechService';
+import { useVoiceInput } from '../../hooks/useVoiceInput';
 
 export default function VoiceGuidedInput({ steps, onComplete, onCancel }) {
     const { lang, t } = useLanguage();
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
-    const [isListening, setIsListening] = useState(false);
     const [recognizedText, setRecognizedText] = useState("");
-    const [error, setError] = useState(null);
-
-    const recognitionRef = useRef(null);
+    const { isListening, error, startListening, stopListening } = useVoiceInput();
 
     const activeStep = steps[currentStepIndex];
 
@@ -24,58 +22,24 @@ export default function VoiceGuidedInput({ steps, onComplete, onCancel }) {
         speakText(text, getRecLang(), callback);
     };
 
-    const startListening = () => {
-        setError(null);
-        setRecognizedText("");
-
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            setError(t('err_no_support'));
-            return;
-        }
-
-        try {
-            if (recognitionRef.current) {
-                recognitionRef.current.stop();
-            }
-
-            const rec = new SpeechRecognition();
-            rec.lang = getRecLang();
-            rec.continuous = false;
-            rec.interimResults = false;
-
-            rec.onstart = () => setIsListening(true);
-            rec.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                setRecognizedText(transcript);
-                setIsListening(false);
-            };
-            rec.onerror = (event) => {
-                setIsListening(false);
-                if (event.error === 'not-allowed') {
-                    setError(t('err_mic_req'));
-                } else {
-                    setError(t('err_not_understood'));
-                }
-            };
-            rec.onend = () => setIsListening(false);
-
-            recognitionRef.current = rec;
-            rec.start();
-        } catch (e) {
-            setIsListening(false);
-            setError(t('err_no_support'));
-        }
-    };
-
     const handleStartStep = () => {
-        speakPrompt(t(activeStep.promptKey), startListening);
+        setRecognizedText("");
+        speakPrompt(t(activeStep.promptKey), () => {
+            startListening((finalTranscript, interimTranscript) => {
+                if (finalTranscript) {
+                    setRecognizedText(finalTranscript);
+                    stopListening();
+                } else if (interimTranscript && !recognizedText) {
+                    // Update recognizing visually if desired, though we typically just wait for final in wizard
+                }
+            });
+        });
     };
 
     useEffect(() => {
         handleStartStep();
         return () => {
-            if (recognitionRef.current) recognitionRef.current.stop();
+            stopListening();
             if ('speechSynthesis' in window) window.speechSynthesis.cancel();
         };
     }, [currentStepIndex, lang]);
@@ -149,7 +113,23 @@ export default function VoiceGuidedInput({ steps, onComplete, onCancel }) {
             {recognizedText && !isListening && (
                 <div style={{ backgroundColor: 'var(--color-white)', padding: '24px', borderRadius: '16px', boxShadow: '0 8px 24px rgba(0, 90, 50, 0.1)', width: '100%', maxWidth: '400px', textAlign: 'center' }}>
                     <p style={{ color: 'var(--color-green-medium)', fontSize: '0.9rem', marginBottom: '8px' }}>{t('you_said')}</p>
-                    <p style={{ color: 'var(--color-green-deep)', fontSize: '1.5rem', fontWeight: 800, marginBottom: '24px' }}>{recognizedText}</p>
+                    <input
+                        type="text"
+                        value={recognizedText}
+                        onChange={(e) => setRecognizedText(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '12px',
+                            fontSize: '1.2rem',
+                            fontWeight: 700,
+                            color: 'var(--color-green-deep)',
+                            border: '2px solid var(--color-green-primary)',
+                            borderRadius: '12px',
+                            marginBottom: '24px',
+                            textAlign: 'center',
+                            backgroundColor: 'var(--color-bg-lightest)'
+                        }}
+                    />
 
                     <div style={{ display: 'flex', gap: '16px' }}>
                         <button

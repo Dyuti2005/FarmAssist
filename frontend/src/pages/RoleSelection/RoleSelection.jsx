@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, X, Check, RefreshCw, AlertCircle, ShoppingCart } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { speakText } from '../../services/voice/speechService';
+import { useVoiceInput } from '../../hooks/useVoiceInput';
 
 // Background aesthetic components copying the reference
 const BackgroundHills = () => (
@@ -54,11 +55,8 @@ export default function RoleSelection() {
 
     const [selectedRole, setSelectedRole] = useState(null);
     const [isVoiceActive, setIsVoiceActive] = useState(false);
-    const [isListening, setIsListening] = useState(false);
-    const [error, setError] = useState(null);
+    const { isListening, error, startListening, stopListening } = useVoiceInput();
     const [recognizedRole, setRecognizedRole] = useState(null);
-
-    const recognitionRef = useRef(null);
 
     const getRecLang = () => {
         if (lang === 'kn') return 'kn-IN';
@@ -77,67 +75,34 @@ export default function RoleSelection() {
         speakText(text, getRecLang(), callback);
     };
 
-    const startListening = () => {
-        setError(null);
+    const handleStartListening = () => {
         setRecognizedRole(null);
+        startListening((finalTranscript, interimTranscript) => {
+            const transcript = (finalTranscript || interimTranscript).toLowerCase();
+            const farmerKeywords = ['farm', 'farmer', 'ರೈತ', 'ರೈತರು', 'ರೈತನು', 'किसान'];
+            const buyerKeywords = ['buy', 'buyer', 'ಖರೀದಿದಾರ', 'ಖರೀದಿದಾರರು', 'खरीदार', 'खरीदने'];
 
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            setError(t('err_no_support'));
-            return;
-        }
+            let detected = null;
+            if (farmerKeywords.some(kw => transcript.includes(kw))) {
+                detected = 'farmer';
+            } else if (buyerKeywords.some(kw => transcript.includes(kw))) {
+                detected = 'buyer';
+            }
 
-        try {
-            if (recognitionRef.current) recognitionRef.current.stop();
-            const rec = new SpeechRecognition();
-            rec.lang = getRecLang();
-            rec.continuous = false;
-            rec.interimResults = false;
-
-            rec.onstart = () => setIsListening(true);
-            rec.onresult = (event) => {
-                const transcript = event.results[0][0].transcript.toLowerCase();
-                const farmerKeywords = ['farm', 'farmer', 'ರೈತ', 'ರೈತರು', 'ರೈತನು', 'किसान'];
-                const buyerKeywords = ['buy', 'buyer', 'ಖರೀದಿದಾರ', 'ಖರೀದಿದಾರರು', 'खरीदार', 'खरीदने'];
-
-                let detected = null;
-                if (farmerKeywords.some(kw => transcript.includes(kw))) {
-                    detected = 'farmer';
-                } else if (buyerKeywords.some(kw => transcript.includes(kw))) {
-                    detected = 'buyer';
-                }
-
-                if (detected) {
-                    setRecognizedRole(detected);
-                } else {
-                    setError(t('err_not_understood'));
-                }
-                setIsListening(false);
-            };
-            rec.onerror = (e) => {
-                setIsListening(false);
-                if (e.error === 'not-allowed') {
-                    setError(t('err_mic_req'));
-                } else {
-                    setError(t('err_not_understood'));
-                }
-            };
-            rec.onend = () => setIsListening(false);
-            recognitionRef.current = rec;
-            rec.start();
-        } catch (e) {
-            setIsListening(false);
-            setError(t('err_no_support'));
-        }
+            if (detected) {
+                setRecognizedRole(detected);
+                stopListening();
+            }
+        });
     };
 
     const startVoiceFlow = () => {
         setIsVoiceActive(true);
-        speakPrompt(t('say_farmer_or_buyer'), startListening);
+        speakPrompt(t('say_farmer_or_buyer'), handleStartListening);
     };
 
     const cancelVoice = () => {
-        if (recognitionRef.current) recognitionRef.current.stop();
+        stopListening();
         if ('speechSynthesis' in window) window.speechSynthesis.cancel();
         setIsVoiceActive(false);
     };
@@ -299,7 +264,7 @@ export default function RoleSelection() {
                         <h2 style={{ color: 'var(--color-green-deep)', fontSize: '1.5rem', fontWeight: 800, marginBottom: '40px', textAlign: 'center' }}>
                             {t('say_farmer_or_buyer')}
                         </h2>
-                        <div onClick={() => speakPrompt(t('say_farmer_or_buyer'), startListening)} style={{ width: '120px', height: '120px', backgroundColor: isListening ? 'var(--color-green-primary)' : 'var(--color-white)', border: `4px solid ${isListening ? 'var(--color-green-primary)' : 'var(--color-green-light)'}`, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '32px', cursor: 'pointer', transition: 'all 0.3s', animation: isListening ? 'pulse 1.5s infinite' : 'none' }}>
+                        <div onClick={() => speakPrompt(t('say_farmer_or_buyer'), handleStartListening)} style={{ width: '120px', height: '120px', backgroundColor: isListening ? 'var(--color-green-primary)' : 'var(--color-white)', border: `4px solid ${isListening ? 'var(--color-green-primary)' : 'var(--color-green-light)'}`, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '32px', cursor: 'pointer', transition: 'all 0.3s', animation: isListening ? 'pulse 1.5s infinite' : 'none' }}>
                             <Mic size={48} color={isListening ? 'var(--color-white)' : 'var(--color-green-primary)'} />
                         </div>
 
@@ -307,7 +272,7 @@ export default function RoleSelection() {
                             <div style={{ color: '#D32F2F', textAlign: 'center' }}>
                                 <AlertCircle size={24} style={{ margin: '0 auto 8px' }} />
                                 <p>{error}</p>
-                                <button onClick={() => speakPrompt(t('say_farmer_or_buyer'), startListening)} style={{ marginTop: '16px', padding: '12px 24px', backgroundColor: 'var(--color-green-very-light)', borderRadius: '12px', color: 'var(--color-green-deep)', fontWeight: 700, border: 'none', cursor: 'pointer' }}>{t('speak_again')}</button>
+                                <button onClick={() => speakPrompt(t('say_farmer_or_buyer'), handleStartListening)} style={{ marginTop: '16px', padding: '12px 24px', backgroundColor: 'var(--color-green-very-light)', borderRadius: '12px', color: 'var(--color-green-deep)', fontWeight: 700, border: 'none', cursor: 'pointer' }}>{t('speak_again')}</button>
                             </div>
                         )}
 
@@ -317,7 +282,7 @@ export default function RoleSelection() {
                                     {recognizedRole === 'farmer' ? t('you_selected_farmer') : t('you_selected_buyer')}
                                 </p>
                                 <div style={{ display: 'flex', gap: '16px' }}>
-                                    <button onClick={() => speakPrompt(t('say_farmer_or_buyer'), startListening)} style={{ flex: 1, padding: '16px', borderRadius: '12px', border: '1px solid var(--color-green-primary)', backgroundColor: 'transparent', color: 'var(--color-green-primary)', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><RefreshCw size={18} style={{ marginRight: '8px' }} />{t('speak_again')}</button>
+                                    <button onClick={() => speakPrompt(t('say_farmer_or_buyer'), handleStartListening)} style={{ flex: 1, padding: '16px', borderRadius: '12px', border: '1px solid var(--color-green-primary)', backgroundColor: 'transparent', color: 'var(--color-green-primary)', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><RefreshCw size={18} style={{ marginRight: '8px' }} />{t('speak_again')}</button>
                                     <button onClick={confirmVoiceRole} style={{ flex: 1, padding: '16px', borderRadius: '12px', backgroundColor: 'var(--color-green-deep)', border: 'none', color: 'var(--color-white)', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Check size={18} style={{ marginRight: '8px' }} />{t('continue')}</button>
                                 </div>
                             </div>

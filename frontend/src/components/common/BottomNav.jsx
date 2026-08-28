@@ -10,20 +10,12 @@ export default function BottomNav() {
     const isFarmerDashboard = location.pathname === '/dashboard';
 
     const getNavItems = () => {
-        let items = [
-            { name: t('home_nav'), path: '/dashboard', icon: Home }
+        return [
+            { name: t('home_nav') || 'Home', path: '/dashboard', icon: Home },
+            { name: t('crop_passport_title') || 'Crop Passport', path: '/crop-passport', icon: ShieldCheck },
+            { name: t('ai_assist_nav') || 'AI Assist', path: '/assistant', icon: Bot },
+            { name: t('profile_nav') || 'Profile', path: '/profile', icon: User }
         ];
-
-        if (isFarmerDashboard) {
-            items.push({ name: t('crop_passport_title'), path: '/crop-passport', icon: ShieldCheck });
-        } else {
-            items.push({ name: t('market_nav'), path: '/marketplace', icon: ShoppingBag });
-        }
-
-        items.push({ name: t('ai_assist_nav'), path: '/assistant', icon: Bot });
-        items.push({ name: t('profile_nav'), path: '/profile', icon: User });
-
-        return items;
     };
 
     const navItems = getNavItems();
