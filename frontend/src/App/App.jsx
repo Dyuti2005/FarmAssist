@@ -14,6 +14,7 @@ import Settings from '../pages/Settings/Settings';
 import Assistant from '../pages/Assistant/Assistant';
 import MainLayout from '../layouts/MainLayout';
 import RoleSelection from '../pages/RoleSelection/RoleSelection';
+import FarmerOrders from '../pages/FarmerOrders/FarmerOrders';
 import BuyerDashboard from '../pages/BuyerDashboard/BuyerDashboard';
 import BuyerProfile from '../pages/BuyerProfile/BuyerProfile';
 import ProtectedRoute from '../components/common/ProtectedRoute';
@@ -27,6 +28,9 @@ import BuyerMessages from '../pages/BuyerMessages/BuyerMessages';
 import BuyerPayments from '../pages/BuyerPayments/BuyerPayments';
 import BuyerReports from '../pages/BuyerReports/BuyerReports';
 import BuyerSettings from '../pages/BuyerSettings/BuyerSettings';
+import BuyerProductDetails from '../pages/BuyerProductDetails/BuyerProductDetails';
+import BuyerCart from '../pages/BuyerCart/BuyerCart';
+import BuyerOrderDetails from '../pages/BuyerOrderDetails/BuyerOrderDetails';
 
 const MarketplaceDispatcher = () => {
     const role = localStorage.getItem('fc_role');
@@ -51,15 +55,18 @@ export default function App() {
                 <Route path="/register" element={<Auth defaultView="register" />} />
                 <Route path="/onboarding" element={<Onboarding />} />
 
-                <Route path="/buyer-dashboard" element={<ProtectedRoute role="buyer"><BuyerDashboard /></ProtectedRoute>} />
-                <Route path="/buyer-profile" element={<ProtectedRoute role="buyer"><BuyerProfile /></ProtectedRoute>} />
                 <Route path="/digital-twin" element={<ProtectedRoute role="farmer"><DigitalTwin /></ProtectedRoute>} />
 
                 <Route path="/marketplace" element={<ProtectedRoute><MarketplaceDispatcher /></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute><SettingsDispatcher /></ProtectedRoute>} />
 
                 <Route element={<ProtectedRoute role="buyer"><BuyerLayout /></ProtectedRoute>}>
+                    <Route path="/buyer-dashboard" element={<BuyerDashboard />} />
+                    <Route path="/buyer-profile" element={<BuyerProfile />} />
+                    <Route path="/buyer/marketplace/:id" element={<BuyerProductDetails />} />
+                    <Route path="/cart" element={<BuyerCart />} />
                     <Route path="/orders" element={<BuyerOrders />} />
+                    <Route path="/buyer/orders/:id" element={<BuyerOrderDetails />} />
                     <Route path="/contracts" element={<BuyerContracts />} />
                     <Route path="/watchlist" element={<BuyerWatchlist />} />
                     <Route path="/messages" element={<BuyerMessages />} />
@@ -71,6 +78,7 @@ export default function App() {
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/buy" element={<Buy />} />
                     <Route path="/sell" element={<Sell />} />
+                    <Route path="/farmer-orders" element={<FarmerOrders />} />
                     <Route path="/crop-passport" element={<CropPassport />} />
                     <Route path="/profile" element={<FarmerProfile />} />
                     <Route path="/assistant" element={<Assistant />} />

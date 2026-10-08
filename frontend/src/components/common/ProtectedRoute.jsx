@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 
 export default function ProtectedRoute({ children, role }) {
-    const isAuthenticated = localStorage.getItem('fc_auth') === 'true';
+    const isAuthenticated = localStorage.getItem('fc_auth') === 'true' && !!localStorage.getItem('fc_token');
     const currentRole = localStorage.getItem('fc_role');
 
     if (!isAuthenticated) {

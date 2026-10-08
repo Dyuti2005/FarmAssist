@@ -43,7 +43,7 @@ const CustomLeafIcon = () => (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 22V12" stroke="var(--color-green-dark)" strokeWidth="2" strokeLinecap="round" />
         <path d="M12 12C12 12 7 7 7 12C7 17 12 22 12 22Z" fill="var(--color-green-primary)" />
-        <path d="M12 12C12 12 17 7 17 12C17 17 12 22 12 22Z" fill="var(--color-green-medium)" />
+        <path d="M12 12C12 17 7 12 17 17 12 22 12 22Z" fill="var(--color-green-medium)" />
         <path d="M12 7C12 7 9 3 9 7C9 11 12 14 12 14Z" fill="var(--color-green-primary)" />
         <path d="M12 7C12 7 15 3 15 7C15 11 12 14 12 14Z" fill="var(--color-green-medium)" />
     </svg>
@@ -57,6 +57,7 @@ export default function RoleSelection() {
     const [isVoiceActive, setIsVoiceActive] = useState(false);
     const { isListening, error, startListening, stopListening } = useVoiceInput();
     const [recognizedRole, setRecognizedRole] = useState(null);
+    const [liveText, setLiveText] = useState("");
 
     const getRecLang = () => {
         if (lang === 'kn') return 'kn-IN';
@@ -77,23 +78,34 @@ export default function RoleSelection() {
 
     const handleStartListening = () => {
         setRecognizedRole(null);
-        startListening((finalTranscript, interimTranscript) => {
-            const transcript = (finalTranscript || interimTranscript).toLowerCase();
-            const farmerKeywords = ['farm', 'farmer', 'ರೈತ', 'ರೈತರು', 'ರೈತನು', 'किसान'];
-            const buyerKeywords = ['buy', 'buyer', 'ಖರೀದಿದಾರ', 'ಖರೀದಿದಾರರು', 'खरीदार', 'खरीदने'];
+        setLiveText("");
 
-            let detected = null;
-            if (farmerKeywords.some(kw => transcript.includes(kw))) {
-                detected = 'farmer';
-            } else if (buyerKeywords.some(kw => transcript.includes(kw))) {
-                detected = 'buyer';
-            }
+        startListening(
+            (finalTranscript, interimTranscript) => {
+                // Show real-time text to user but DO NOT process yet
+                setLiveText((finalTranscript + " " + interimTranscript).trim());
+            },
+            null,
+            (completeTranscript) => {
+                // Process only when speech recognition naturally completes (wait till ended)
+                const transcript = completeTranscript.toLowerCase();
+                const farmerKeywords = ['farm', 'farmer', 'ರೈತ', 'ರೈತರು', 'ರೈತನು', 'किसान'];
+                const buyerKeywords = ['buy', 'buyer', 'ಖರೀದಿದಾರ', 'ಖರೀದಿದಾರರು', 'खरीदार', 'खरीदने'];
 
-            if (detected) {
-                setRecognizedRole(detected);
-                stopListening();
+                let detected = null;
+                if (farmerKeywords.some(kw => transcript.includes(kw))) {
+                    detected = 'farmer';
+                } else if (buyerKeywords.some(kw => transcript.includes(kw))) {
+                    detected = 'buyer';
+                }
+
+                if (detected) {
+                    setRecognizedRole(detected);
+                } else {
+                    setLiveText("Could not match role. Please try again.");
+                }
             }
-        });
+        );
     };
 
     const startVoiceFlow = () => {
@@ -264,9 +276,21 @@ export default function RoleSelection() {
                         <h2 style={{ color: 'var(--color-green-deep)', fontSize: '1.5rem', fontWeight: 800, marginBottom: '40px', textAlign: 'center' }}>
                             {t('say_farmer_or_buyer')}
                         </h2>
-                        <div onClick={() => speakPrompt(t('say_farmer_or_buyer'), handleStartListening)} style={{ width: '120px', height: '120px', backgroundColor: isListening ? 'var(--color-green-primary)' : 'var(--color-white)', border: `4px solid ${isListening ? 'var(--color-green-primary)' : 'var(--color-green-light)'}`, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '32px', cursor: 'pointer', transition: 'all 0.3s', animation: isListening ? 'pulse 1.5s infinite' : 'none' }}>
+
+                        <div onClick={isListening ? stopListening : () => speakPrompt(t('say_farmer_or_buyer'), handleStartListening)} style={{ width: '120px', height: '120px', backgroundColor: isListening ? 'var(--color-green-primary)' : 'var(--color-white)', border: `4px solid ${isListening ? 'var(--color-green-primary)' : 'var(--color-green-light)'}`, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '32px', cursor: 'pointer', transition: 'all 0.3s', animation: isListening ? 'pulse 1.5s infinite' : 'none' }}>
                             <Mic size={48} color={isListening ? 'var(--color-white)' : 'var(--color-green-primary)'} />
                         </div>
+
+                        {liveText && isListening && !recognizedRole && (
+                            <div style={{ fontStyle: 'italic', color: 'var(--color-green-medium)', marginBottom: '16px', fontSize: '1.2rem' }}>
+                                "{liveText}"
+                            </div>
+                        )}
+                        {!isListening && liveText && !recognizedRole && !error && (
+                            <div style={{ fontStyle: 'italic', color: '#D32F2F', marginBottom: '16px', fontSize: '1rem', fontWeight: 500 }}>
+                                {liveText}
+                            </div>
+                        )}
 
                         {error && !isListening && (
                             <div style={{ color: '#D32F2F', textAlign: 'center' }}>

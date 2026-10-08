@@ -7,7 +7,7 @@ import {
 import { useLanguage } from '../context/LanguageContext';
 import { useVoiceInput } from '../hooks/useVoiceInput'; // 1. import custom hook
 
-export default function BuyerLayout() {
+export default function BuyerLayout({ children }) {
     const { lang, setLang, t } = useLanguage();
     const location = useLocation();
     const { startListening, stopListening, isListening } = useVoiceInput();
@@ -28,18 +28,30 @@ export default function BuyerLayout() {
         { icon: Settings, label: t('side_settings') || 'Settings', path: '/settings' },
     ];
 
+    const originalSearchRef = React.useRef('');
+
     const handleMicClick = () => {
         if (isListening) {
             stopListening();
         } else {
-            startListening((finalTranscript) => {
-                if (finalTranscript) {
-                    setSearchText(prev => {
-                        const space = prev.length > 0 && !prev.endsWith(' ') ? ' ' : '';
-                        return prev + space + finalTranscript;
-                    });
+            originalSearchRef.current = searchText.trim();
+            startListening(
+                (finalTranscript, interimTranscript) => {
+                    const currentStr = (finalTranscript + ' ' + interimTranscript).trim();
+                    if (currentStr) {
+                        const space = originalSearchRef.current ? ' ' : '';
+                        setSearchText(originalSearchRef.current + space + currentStr);
+                    }
+                },
+                null,
+                (completeTranscript) => {
+                    const currentStr = completeTranscript.trim();
+                    if (currentStr) {
+                        const space = originalSearchRef.current ? ' ' : '';
+                        setSearchText(originalSearchRef.current + space + currentStr);
+                    }
                 }
-            });
+            );
         }
     };
 
@@ -85,6 +97,9 @@ export default function BuyerLayout() {
                             </button>
                         </div>
                         <button style={{ background: 'var(--color-bg-lightest)', padding: '8px', borderRadius: '50%', border: '1px solid var(--color-green-very-light)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Bell color="var(--color-green-primary)" size={18} /></button>
+                        <Link to="/cart" style={{ background: 'var(--color-bg-lightest)', padding: '8px', borderRadius: '50%', border: '1px solid var(--color-green-very-light)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                            <ShoppingCart color="var(--color-green-primary)" size={18} />
+                        </Link>
                         <Link to="/buyer-profile" style={{ backgroundColor: 'var(--color-green-primary)', padding: '8px', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(22, 138, 74, 0.2)' }}><User color="var(--color-white)" size={18} /></Link>
                     </div>
                 </div>
@@ -113,7 +128,7 @@ export default function BuyerLayout() {
                 </div>
 
                 <main style={{ flex: 1, padding: '40px', overflowY: 'auto' }}>
-                    <Outlet />
+                    {children || <Outlet />}
                 </main>
             </div>
         </div>

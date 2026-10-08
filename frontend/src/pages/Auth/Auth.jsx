@@ -156,21 +156,66 @@ export default function Auth({ defaultView = "login" }) {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleLogin = (e) => {
+    const [apiError, setApiError] = useState(null);
+
+    const handleLogin = async (e) => {
         e.preventDefault();
-        if (handleValidation()) {
-            localStorage.setItem('fc_auth', 'true');
-            localStorage.setItem('fc_role', role);
-            navigate(role === 'buyer' ? '/buyer-dashboard' : '/dashboard', { replace: true });
+        setApiError(null);
+        if (!handleValidation()) return;
+
+        try {
+            const res = await fetch('http://localhost:5002/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone: formData.mobile, password: formData.password })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                localStorage.setItem('fc_auth', 'true');
+                localStorage.setItem('fc_token', data.token);
+                localStorage.setItem('fc_role', role);
+                navigate(role === 'buyer' ? '/buyer-dashboard' : '/dashboard', { replace: true });
+            } else {
+                setApiError(data.message || 'Login failed');
+            }
+        } catch (err) {
+            setApiError('Unable to connect to server');
         }
     };
 
-    const handleRegister = (e) => {
+    const handleRegister = async (e) => {
         e.preventDefault();
-        if (handleValidation()) {
-            localStorage.setItem('fc_auth', 'true');
-            localStorage.setItem('fc_role', role);
-            navigate(role === 'buyer' ? '/buyer-dashboard' : '/onboarding', { replace: true });
+        setApiError(null);
+        if (!handleValidation()) return;
+
+        try {
+            const res = await fetch('http://localhost:5002/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: formData.name || 'New Buyer',
+                    phone: formData.mobile,
+                    password: formData.password,
+                    role: role.toUpperCase(),
+                    language: lang
+                })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                // Auto-login after registration or just redirect like before
+                localStorage.setItem('fc_auth', 'true');
+                localStorage.setItem('fc_role', role);
+                // Also set token if API returned it (currently register doesn't return token, so we just let them go to onboarding, but typically we should log them in)
+                // We'll just continue the flow. Protected queries won't work without token, so let's navigate to login
+                setView('login');
+                setApiError('Registration successful! Please log in.');
+            } else {
+                setApiError(data.message || 'Registration failed');
+            }
+        } catch (err) {
+            setApiError('Unable to connect to server');
         }
     };
 
@@ -276,6 +321,12 @@ export default function Auth({ defaultView = "login" }) {
                                 <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-green-deep)' }}>Your Data is Secure</div>
                                 <div style={{ fontSize: '0.8rem', color: 'var(--color-green-dark)' }}>We protect your information and help you grow with technology.</div>
                             </div>
+                        </div>
+                    )}
+
+                    {apiError && (
+                        <div style={{ color: '#D32F2F', backgroundColor: '#FFEBEE', padding: '12px', borderRadius: '8px', marginBottom: '20px', fontSize: '0.9rem', fontWeight: 600, textAlign: 'center' }}>
+                            {apiError}
                         </div>
                     )}
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Leaf, MapPin, Sun, ShieldCheck, Activity, Info, Droplets, FlaskConical, Bug, ChevronRight, CheckCircle2, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
@@ -6,8 +6,65 @@ import { useLanguage } from '../../context/LanguageContext';
 export default function DigitalTwin() {
     const { t } = useLanguage();
 
+    const [dtData, setDtData] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const token = localStorage.getItem('fc_token');
+                if (!token) return setLoading(false);
+
+                const pRes = await fetch('http://localhost:5002/api/farmers/me', { headers: { 'Authorization': `Bearer ${token}` } });
+                const cRes = await fetch('http://localhost:5002/api/crops', { headers: { 'Authorization': `Bearer ${token}` } });
+
+                if (pRes.ok && cRes.ok) {
+                    const profile = await pRes.json();
+                    const crops = await cRes.json();
+
+                    let twin = null;
+                    let insights = [];
+                    if (crops.length > 0) {
+                        const tRes = await fetch(`http://localhost:5002/api/digital-twin/${crops[0].id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                        if (tRes.ok) twin = await tRes.json();
+
+                        try {
+                            const iRes = await fetch(`http://localhost:5002/api/digital-twin/${crops[0].id}/insights`, { headers: { 'Authorization': `Bearer ${token}` } });
+                            if (iRes.ok) {
+                                const iData = await iRes.json();
+                                if (iData.success) insights = iData.insights;
+                            }
+                        } catch (ie) { console.error("Insights unreachable:", ie); }
+                    }
+
+                    let weather = null;
+                    try {
+                        const wRes = await fetch('http://localhost:5002/api/weather', { headers: { 'Authorization': `Bearer ${token}` } });
+                        if (wRes.ok) {
+                            const wxData = await wRes.json();
+                            if (wxData.success) weather = wxData.data;
+                        }
+                    } catch (we) { console.error("Weather unreachable:", we); }
+
+                    setDtData({ profile, crops, twin, weather, insights });
+                }
+            } catch (e) { console.error(e); }
+            setLoading(false);
+        };
+        fetchData();
+    }, []);
+
+    if (loading) return <div style={{ padding: '60px', textAlign: 'center', fontSize: '1.2rem', color: 'var(--color-green-deep)', fontWeight: 600 }}>Loading digital twin...</div>;
+
+    const primaryCrop = dtData?.crops?.length > 0 ? dtData.crops[0].cropName : t('wheat') || 'Wheat';
+    const farmSize = dtData?.profile?.farmSize ? `${dtData.profile.farmSize}` : t('acres_5') || '5 Acres';
+    const location = dtData?.profile?.farmLocation || 'Unknown Location';
+    const twin = dtData?.twin || {};
+    const weather = dtData?.weather || null;
+    const insights = dtData?.insights || [];
+
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px 100px', fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ width: '100%', maxWidth: '1250px', margin: '0 auto', padding: '0 24px 100px', fontFamily: 'Inter, sans-serif', boxSizing: 'border-box' }}>
             {/* Header Section */}
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px', position: 'relative' }}>
                 <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '16px', textDecoration: 'none', color: 'var(--color-green-deep)' }}>
@@ -29,7 +86,7 @@ export default function DigitalTwin() {
                     </div>
                     <div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--color-green-medium)', fontWeight: 600 }}>{t('primary_crop') || 'Primary Crop'}</div>
-                        <div style={{ fontSize: '1rem', color: 'var(--color-green-deep)', fontWeight: 800 }}>{t('wheat') || 'Wheat'}</div>
+                        <div style={{ fontSize: '1rem', color: 'var(--color-green-deep)', fontWeight: 800 }}>{primaryCrop}</div>
                     </div>
                 </div>
                 <div style={{ flex: 1, minWidth: '160px', backgroundColor: 'var(--color-white)', padding: '16px 20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '16px', border: '1px solid var(--color-green-very-light)', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
@@ -38,7 +95,7 @@ export default function DigitalTwin() {
                     </div>
                     <div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--color-green-medium)', fontWeight: 600 }}>{t('farm_size') || 'Farm Size'}</div>
-                        <div style={{ fontSize: '1rem', color: 'var(--color-green-deep)', fontWeight: 800 }}>{t('acres_5') || '5 Acres'}</div>
+                        <div style={{ fontSize: '1rem', color: 'var(--color-green-deep)', fontWeight: 800 }}>{farmSize}</div>
                     </div>
                 </div>
                 <div style={{ flex: 1, minWidth: '160px', backgroundColor: 'var(--color-white)', padding: '16px 20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '16px', border: '1px solid var(--color-green-very-light)', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
@@ -47,7 +104,7 @@ export default function DigitalTwin() {
                     </div>
                     <div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--color-green-medium)', fontWeight: 600 }}>{t('season') || 'Season'}</div>
-                        <div style={{ fontSize: '1rem', color: 'var(--color-green-deep)', fontWeight: 800 }}>{t('kharif') || 'Kharif'}</div>
+                        <div style={{ fontSize: '1rem', color: 'var(--color-green-deep)', fontWeight: 800 }}>{twin.season || 'Unknown'}</div>
                     </div>
                 </div>
                 <div style={{ flex: 1, minWidth: '160px', backgroundColor: 'var(--color-white)', padding: '16px 20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '16px', border: '1px solid var(--color-green-very-light)', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
@@ -56,14 +113,14 @@ export default function DigitalTwin() {
                     </div>
                     <div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--color-green-medium)', fontWeight: 600 }}>{t('farm_status') || 'Farm Status'}</div>
-                        <div style={{ fontSize: '1rem', color: 'var(--color-green-deep)', fontWeight: 800 }}>{t('healthy') || 'Healthy'}</div>
+                        <div style={{ fontSize: '1rem', color: 'var(--color-green-deep)', fontWeight: 800 }}>{twin.farmStatus || 'Unknown'}</div>
                     </div>
                 </div>
                 <div style={{ flex: 1, minWidth: '160px', backgroundColor: 'var(--color-white)', padding: '16px 20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '16px', border: '1px solid var(--color-green-very-light)', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', justifyContent: 'flex-end', paddingRight: '32px' }}>
                     <div style={{ textAlign: 'right' }}>
                         <div style={{ fontSize: '0.75rem', color: 'var(--color-green-medium)', fontWeight: 600 }}>Digital Twin Status</div>
                         <div style={{ fontSize: '1rem', color: 'var(--color-green-primary)', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end' }}>
-                            <span style={{ width: '8px', height: '8px', backgroundColor: 'var(--color-green-primary)', borderRadius: '50%', display: 'inline-block' }}></span> {t('dt_active') || 'Active'}
+                            <span style={{ width: '8px', height: '8px', backgroundColor: 'var(--color-green-primary)', borderRadius: '50%', display: 'inline-block' }}></span> {twin.twinStatus || 'Active'}
                         </div>
                     </div>
                 </div>
@@ -90,42 +147,44 @@ export default function DigitalTwin() {
                                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '200px', height: '200px', borderRadius: '50%', border: '1px dashed var(--color-green-light)', zIndex: 1 }}></div>
 
                                 <div style={{ position: 'absolute', top: '-12px', left: '50%', transform: 'translate(-50%, 0)', display: 'flex', alignItems: 'center', gap: '8px', zIndex: 5 }}>
-                                    <div style={{ padding: '8px', backgroundColor: 'var(--color-white)', borderRadius: '50%', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid var(--color-green-very-light)' }}><Sun size={18} color="#D9A000" /></div>
+                                    <div style={{ padding: '8px', backgroundColor: 'var(--color-bg-lightest)', borderRadius: '50%', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid var(--color-green-very-light)' }}><Sun size={18} color="var(--color-green-medium)" /></div>
                                     <div>
                                         <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-green-deep)', whiteSpace: 'nowrap' }}>{t('dt_weather') || 'Weather'}</div>
-                                        <div style={{ fontSize: '0.7rem', color: 'var(--color-green-medium)', whiteSpace: 'nowrap' }}>24°C | Clear</div>
+                                        <div style={{ fontSize: '0.7rem', color: weather ? 'var(--color-green-primary)' : 'var(--color-green-medium)', whiteSpace: 'nowrap', fontWeight: weather ? 700 : 500 }}>
+                                            {weather ? `${weather.current.temperature} | ${weather.current.description}` : 'Loading / N/A'}
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div style={{ position: 'absolute', top: '25%', left: '-20px', transform: 'translate(0, -50%)', display: 'flex', alignItems: 'center', gap: '8px', zIndex: 5 }}>
                                     <div>
                                         <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-green-deep)', textAlign: 'right', whiteSpace: 'nowrap' }}>{t('dt_soil') || 'Soil'}</div>
-                                        <div style={{ fontSize: '0.7rem', color: 'var(--color-green-medium)', textAlign: 'right', whiteSpace: 'nowrap' }}>Good pH 6.5</div>
+                                        <div style={{ fontSize: '0.7rem', color: 'var(--color-green-primary)', textAlign: 'right', whiteSpace: 'nowrap', fontWeight: 700 }}>pH {twin.soilPh || 'N/A'}</div>
                                     </div>
                                     <div style={{ padding: '8px', backgroundColor: 'var(--color-white)', borderRadius: '50%', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid var(--color-green-very-light)' }}><Activity size={18} color="#8D6E63" /></div>
                                 </div>
 
                                 <div style={{ position: 'absolute', top: '25%', right: '-25px', transform: 'translate(0, -50%)', display: 'flex', alignItems: 'center', gap: '8px', zIndex: 5 }}>
-                                    <div style={{ padding: '8px', backgroundColor: 'var(--color-white)', borderRadius: '50%', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid var(--color-green-very-light)' }}><Droplets size={18} color="#29B6F6" /></div>
+                                    <div style={{ padding: '8px', backgroundColor: 'var(--color-bg-lightest)', borderRadius: '50%', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid var(--color-green-very-light)' }}><Droplets size={18} color="var(--color-green-medium)" /></div>
                                     <div>
                                         <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-green-deep)', whiteSpace: 'nowrap' }}>{t('dt_irrigation') || 'Irrigation'}</div>
-                                        <div style={{ fontSize: '0.7rem', color: 'var(--color-green-medium)', whiteSpace: 'nowrap' }}>Optimal</div>
+                                        <div style={{ fontSize: '0.7rem', color: 'var(--color-green-medium)', whiteSpace: 'nowrap' }}>Not Connected</div>
                                     </div>
                                 </div>
 
                                 <div style={{ position: 'absolute', bottom: '25%', left: '-20px', transform: 'translate(0, 50%)', display: 'flex', alignItems: 'center', gap: '8px', zIndex: 5 }}>
                                     <div>
                                         <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-green-deep)', textAlign: 'right', whiteSpace: 'nowrap' }}>{t('dt_nutrients') || 'Nutrients'}</div>
-                                        <div style={{ fontSize: '0.7rem', color: 'var(--color-green-medium)', textAlign: 'right', whiteSpace: 'nowrap' }}>Balanced</div>
+                                        <div style={{ fontSize: '0.7rem', color: 'var(--color-green-primary)', textAlign: 'right', whiteSpace: 'nowrap', fontWeight: 700 }}>NPK: {twin.soilN}:{twin.soilP}:{twin.soilK}</div>
                                     </div>
                                     <div style={{ padding: '8px', backgroundColor: 'var(--color-white)', borderRadius: '50%', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid var(--color-green-very-light)' }}><FlaskConical size={18} color="var(--color-green-primary)" /></div>
                                 </div>
 
                                 <div style={{ position: 'absolute', bottom: '25%', right: '-25px', transform: 'translate(0, 50%)', display: 'flex', alignItems: 'center', gap: '8px', zIndex: 5 }}>
-                                    <div style={{ padding: '8px', backgroundColor: 'var(--color-white)', borderRadius: '50%', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid var(--color-green-very-light)' }}><Bug size={18} color="#66BB6A" /></div>
+                                    <div style={{ padding: '8px', backgroundColor: 'var(--color-bg-lightest)', borderRadius: '50%', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid var(--color-green-very-light)' }}><Bug size={18} color="var(--color-green-medium)" /></div>
                                     <div>
                                         <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-green-deep)', whiteSpace: 'nowrap' }}>{t('dt_pest_risk') || 'Pest Risk'}</div>
-                                        <div style={{ fontSize: '0.7rem', color: 'var(--color-green-medium)', whiteSpace: 'nowrap' }}>Low</div>
+                                        <div style={{ fontSize: '0.7rem', color: 'var(--color-green-medium)', whiteSpace: 'nowrap' }}>Not Connected</div>
                                     </div>
                                 </div>
 
@@ -133,7 +192,7 @@ export default function DigitalTwin() {
                                     <div style={{ padding: '8px', backgroundColor: 'var(--color-white)', borderRadius: '50%', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid var(--color-green-very-light)' }}><Heart size={18} color="var(--color-green-primary)" /></div>
                                     <div>
                                         <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-green-deep)', whiteSpace: 'nowrap' }}>{t('dt_farm_health') || 'Farm Health'}</div>
-                                        <div style={{ fontSize: '0.7rem', color: 'var(--color-green-medium)', whiteSpace: 'nowrap' }}>Excellent</div>
+                                        <div style={{ fontSize: '0.7rem', color: 'var(--color-green-primary)', whiteSpace: 'nowrap', fontWeight: 700 }}>{twin.healthStatus || 'Unknown'}</div>
                                     </div>
                                 </div>
                             </div>
@@ -149,8 +208,8 @@ export default function DigitalTwin() {
                         <div style={{ position: 'relative', width: '180px', height: '90px', overflow: 'hidden', marginBottom: '16px' }}>
                             <div style={{ width: '180px', height: '180px', borderRadius: '50%', border: '16px solid var(--color-bg-lightest)', borderTopColor: 'var(--color-green-primary)', borderRightColor: 'var(--color-green-primary)', transform: 'rotate(-45deg)', position: 'absolute', top: 0, left: 0 }}></div>
                             <div style={{ position: 'absolute', bottom: '0', left: '50%', transform: 'translate(-50%, 0)', textAlign: 'center' }}>
-                                <div style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--color-green-deep)', lineHeight: 1 }}>92%</div>
-                                <div style={{ fontSize: '0.85rem', color: 'var(--color-green-primary)', fontWeight: 700, marginTop: '2px' }}>{t('dt_excellent') || 'Excellent'}</div>
+                                <div style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--color-green-deep)', lineHeight: 1 }}>{twin.healthScore || 0}%</div>
+                                <div style={{ fontSize: '0.85rem', color: 'var(--color-green-primary)', fontWeight: 700, marginTop: '2px' }}>{twin.healthStatus || 'Unknown'}</div>
                             </div>
                         </div>
 
@@ -169,34 +228,17 @@ export default function DigitalTwin() {
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <div style={{ padding: '6px', backgroundColor: 'var(--color-bg-lightest)', borderRadius: '8px' }}><Activity size={16} color="#8D6E63" /></div>
-                                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-green-deep)' }}>{t('dt_soil_test') || 'Soil Test Completed'}</span>
+                            {twin.activities && twin.activities.length > 0 ? twin.activities.map((act, i) => (
+                                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div style={{ padding: '6px', backgroundColor: 'var(--color-bg-lightest)', borderRadius: '8px' }}><Activity size={16} color="#8D6E63" /></div>
+                                        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-green-deep)' }}>{act.activityType}</span>
+                                    </div>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--color-green-medium)' }}>{new Date(act.date).toLocaleDateString()}</span>
                                 </div>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--color-green-medium)' }}>18 May 2025</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <div style={{ padding: '6px', backgroundColor: 'var(--color-bg-lightest)', borderRadius: '8px' }}><Droplets size={16} color="#29B6F6" /></div>
-                                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-green-deep)' }}>{t('dt_irrigation_logged') || 'Irrigation Logged'}</span>
-                                </div>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--color-green-medium)' }}>17 May 2025</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <div style={{ padding: '6px', backgroundColor: 'var(--color-bg-lightest)', borderRadius: '8px' }}><FlaskConical size={16} color="var(--color-green-primary)" /></div>
-                                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-green-deep)' }}>{t('dt_fert_added') || 'Fertilizer Added'}</span>
-                                </div>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--color-green-medium)' }}>15 May 2025</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <div style={{ padding: '6px', backgroundColor: 'var(--color-bg-lightest)', borderRadius: '8px' }}><Bug size={16} color="#66BB6A" /></div>
-                                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-green-deep)' }}>{t('dt_pest_mon') || 'Pest Monitoring'}</span>
-                                </div>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--color-green-medium)' }}>14 May 2025</span>
-                            </div>
+                            )) : (
+                                <div style={{ fontSize: '0.85rem', color: 'var(--color-green-medium)', textAlign: 'center' }}>No recent activities found.</div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -261,7 +303,7 @@ export default function DigitalTwin() {
                         <h2 style={{ fontSize: '1.05rem', color: 'var(--color-green-deep)', margin: 0, fontWeight: 800 }}>{t('dt_soil_health') || 'Soil Health'}</h2>
                         <Info size={14} color="var(--color-green-medium)" />
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-green-medium)', marginBottom: '20px' }}>Last tested: 18 May 2025</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-green-medium)', marginBottom: '20px' }}>Last tested: {twin.lastSoilTestDate ? new Date(twin.lastSoilTestDate).toLocaleDateString() : 'N/A'}</div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -269,7 +311,7 @@ export default function DigitalTwin() {
                                 <FlaskConical size={14} color="var(--color-green-primary)" />
                                 <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-green-dark)' }}>{t('dt_ph') || 'pH Level'}</span>
                             </div>
-                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-green-deep)' }}>6.5</div>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-green-deep)' }}>{twin.soilPh || 'N/A'}</div>
                             <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--color-green-primary)', width: '60px', textAlign: 'right' }}>Good</div>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -277,7 +319,7 @@ export default function DigitalTwin() {
                                 <Leaf size={14} color="var(--color-green-primary)" />
                                 <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-green-dark)' }}>{t('dt_om') || 'Organic Matter'}</span>
                             </div>
-                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-green-deep)' }}>2.1%</div>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-green-deep)' }}>{twin.soilOrganicMatter || 'N/A'}%</div>
                             <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--color-green-primary)', width: '60px', textAlign: 'right' }}>Good</div>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -285,7 +327,7 @@ export default function DigitalTwin() {
                                 <Activity size={14} color="var(--color-green-primary)" />
                                 <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-green-dark)' }}>{t('dt_npk') || 'NPK Ratio'}</span>
                             </div>
-                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-green-deep)' }}>14 : 32 : 18</div>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-green-deep)' }}>{twin.soilN}:{twin.soilP}:{twin.soilK}</div>
                             <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--color-green-primary)', width: '60px', textAlign: 'right' }}>Balanced</div>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -293,8 +335,8 @@ export default function DigitalTwin() {
                                 <Droplets size={14} color="var(--color-green-primary)" />
                                 <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-green-dark)' }}>{t('dt_moisture') || 'Moisture'}</span>
                             </div>
-                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-green-deep)' }}>18%</div>
-                            <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--color-green-primary)', width: '60px', textAlign: 'right' }}>Optimal</div>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-green-deep)' }}>Not Connected</div>
+                            <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--color-green-medium)', width: '60px', textAlign: 'right' }}>N/A</div>
                         </div>
                     </div>
                 </div>
@@ -305,26 +347,26 @@ export default function DigitalTwin() {
                             <h2 style={{ fontSize: '1.05rem', color: 'var(--color-green-deep)', margin: 0, fontWeight: 800 }}>{t('dt_weather_fc') || 'Weather Forecast'}</h2>
                             <Info size={14} color="var(--color-green-medium)" />
                         </div>
-                        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-green-deep)', backgroundColor: 'var(--color-bg-lightest)', padding: '4px 12px', borderRadius: '12px' }}>5 Days ▾</div>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-green-deep)', backgroundColor: 'var(--color-bg-lightest)', padding: '4px 12px', borderRadius: '12px' }}>Not connected</div>
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-green-deep)', fontWeight: 700, marginBottom: '24px' }}>Sehore, Madhya Pradesh</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-green-deep)', fontWeight: 700, marginBottom: '24px' }}>{location}</div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--color-green-very-light)', paddingTop: '16px' }}>
-                        {[
-                            { d: 'Today', i: <Sun size={24} color="#D9A000" />, temp: '24°C', desc: 'Clear' },
-                            { d: 'Wed', i: <Droplets size={24} color="var(--color-green-medium)" />, temp: '26°C', desc: 'Cloudy' },
-                            { d: 'Thu', i: <Droplets size={24} color="#29B6F6" />, temp: '23°C', desc: 'Rain' },
-                            { d: 'Fri', i: <Sun size={24} color="#D9A000" />, temp: '25°C', desc: 'Clear' },
-                            { d: 'Sat', i: <Droplets size={24} color="var(--color-green-medium)" />, temp: '24°C', desc: 'Cloudy' },
-                        ].map((w, i) => (
-                            <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-green-dark)' }}>{w.d}</div>
-                                {w.i}
-                                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--color-green-deep)', marginTop: '4px' }}>{w.temp}</div>
-                                <div style={{ fontSize: '0.7rem', color: 'var(--color-green-medium)' }}>{w.desc}</div>
-                                {i !== 4 && <div style={{ width: '1px', height: '40px', backgroundColor: 'var(--color-green-very-light)', position: 'absolute', transform: 'translateX(35px)' }}></div>}
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', borderTop: '1px solid var(--color-green-very-light)', paddingTop: '16px', minHeight: '120px' }}>
+                        {weather && weather.forecast && weather.forecast.length > 0 ? (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                {weather.forecast.map((w, i) => (
+                                    <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', position: 'relative', flex: 1 }}>
+                                        <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-green-dark)' }}>{w.day}</div>
+                                        {w.description?.toLowerCase().includes('rain') ? <Droplets size={24} color="#29B6F6" /> : <Sun size={24} color="#D9A000" />}
+                                        <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--color-green-deep)', marginTop: '4px' }}>{w.temperature}</div>
+                                        <div style={{ fontSize: '0.65rem', color: 'var(--color-green-medium)', textAlign: 'center', maxWidth: '50px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={w.description}>{w.description}</div>
+                                        {i !== 4 && <div style={{ width: '1px', height: '40px', backgroundColor: 'var(--color-green-very-light)', position: 'absolute', right: 0, top: '20px' }}></div>}
+                                    </div>
+                                ))}
                             </div>
-                        ))}
+                        ) : (
+                            <div style={{ fontSize: '0.85rem', color: 'var(--color-green-medium)', fontWeight: 600 }}>External API Not Connected</div>
+                        )}
                     </div>
                 </div>
 
@@ -334,21 +376,21 @@ export default function DigitalTwin() {
                         <h2 style={{ fontSize: '1.05rem', color: 'var(--color-green-deep)', margin: 0, fontWeight: 800 }}>{t('dt_smart_rec') || 'Smart Recommendations'}</h2>
                         <Info size={14} color="var(--color-green-medium)" />
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-green-medium)', marginBottom: '20px' }}>Based on your farm data</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-green-medium)', marginBottom: '20px' }}>Based on deterministic data fusion (Phase 4C)</div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1 }}>
-                        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                            <CheckCircle2 color="var(--color-green-primary)" size={16} style={{ marginTop: '2px' }} />
-                            <div style={{ fontSize: '0.85rem', color: 'var(--color-green-deep)', fontWeight: 600, lineHeight: 1.5 }}>{t('dt_rec_1')}</div>
-                        </div>
-                        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                            <CheckCircle2 color="var(--color-green-primary)" size={16} style={{ marginTop: '2px' }} />
-                            <div style={{ fontSize: '0.85rem', color: 'var(--color-green-deep)', fontWeight: 600, lineHeight: 1.5 }}>{t('dt_rec_2')}</div>
-                        </div>
-                        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                            <CheckCircle2 color="var(--color-green-primary)" size={16} style={{ marginTop: '2px' }} />
-                            <div style={{ fontSize: '0.85rem', color: 'var(--color-green-deep)', fontWeight: 600, lineHeight: 1.5 }}>{t('dt_rec_3')}</div>
-                        </div>
+                        {insights && insights.length > 0 ? (
+                            insights.map((insight, idx) => (
+                                <div key={idx} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                                    <CheckCircle2 color={insight.type === 'info' ? "var(--color-green-medium)" : "var(--color-green-primary)"} size={16} style={{ marginTop: '2px', flexShrink: 0 }} />
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--color-green-deep)', fontWeight: 600, lineHeight: 1.5 }}>
+                                        <span style={{ textTransform: 'capitalize', fontWeight: 800 }}>{insight.type}:</span> {insight.message}
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div style={{ fontSize: '0.85rem', color: 'var(--color-green-medium)', textAlign: 'center' }}>Insufficient data to generate farm intelligence insights.</div>
+                        )}
                     </div>
 
                     <button style={{ width: '100%', padding: '12px', backgroundColor: 'var(--color-white)', border: '1px solid var(--color-green-very-light)', borderRadius: '12px', color: 'var(--color-green-deep)', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', marginTop: '16px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>

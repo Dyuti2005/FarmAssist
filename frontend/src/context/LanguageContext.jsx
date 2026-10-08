@@ -13,7 +13,12 @@ export const LanguageProvider = ({ children }) => {
         setLang(newLang);
     };
 
-    const t = (key) => translations[lang][key] || key;
+    const t = (key) => {
+        if (translations[lang] && translations[lang][key]) {
+            return translations[lang][key];
+        }
+        return undefined; // return undefined so `t('x') || 'English'` works instead of returning 'x'
+    };
 
     return (
         <LanguageContext.Provider value={{ lang, setLang: handleSetLang, t }}>

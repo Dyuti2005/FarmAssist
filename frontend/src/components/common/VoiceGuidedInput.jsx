@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mic, X, Check, RefreshCw, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
-import { speakText } from '../../services/voice/speechService';
+import { speakText, normalizeToDigits } from '../../services/voice/speechService';
 import { useVoiceInput } from '../../hooks/useVoiceInput';
 
 export default function VoiceGuidedInput({ steps, onComplete, onCancel }) {
     const { lang, t } = useLanguage();
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [recognizedText, setRecognizedText] = useState("");
+    const [validationError, setValidationError] = useState("");
+    const [isPrompting, setIsPrompting] = useState(false);
     const { isListening, error, startListening, stopListening } = useVoiceInput();
 
     const activeStep = steps[currentStepIndex];
@@ -23,17 +25,34 @@ export default function VoiceGuidedInput({ steps, onComplete, onCancel }) {
     };
 
     const handleStartStep = () => {
+        setValidationError("");
         setRecognizedText("");
+        setIsPrompting(true);
         speakPrompt(t(activeStep.promptKey), () => {
-            startListening((finalTranscript, interimTranscript) => {
-                if (finalTranscript) {
-                    setRecognizedText(finalTranscript);
-                    stopListening();
-                } else if (interimTranscript && !recognizedText) {
-                    // Update recognizing visually if desired, though we typically just wait for final in wizard
+            setIsPrompting(false);
+            startListening(
+                (finalTranscript, interimTranscript) => {
+                    const combined = (finalTranscript + ' ' + interimTranscript).trim();
+                    if (combined) {
+                        setRecognizedText(combined);
+                    }
+                },
+                null,
+                (completeTranscript) => {
+                    if (completeTranscript) {
+                        setRecognizedText(completeTranscript);
+                    }
                 }
-            });
+            );
         });
+    };
+
+    const toggleListening = () => {
+        if (isListening) {
+            stopListening();
+        } else {
+            handleStartStep();
+        }
     };
 
     useEffect(() => {
@@ -45,7 +64,32 @@ export default function VoiceGuidedInput({ steps, onComplete, onCancel }) {
     }, [currentStepIndex, lang]);
 
     const handleConfirm = () => {
-        activeStep.onFill(recognizedText);
+        let finalValue = recognizedText;
+
+        if (activeStep.promptKey === 'tts_ask_mobile' || activeStep.promptKey === 'tts_ask_phone') {
+            const digits = normalizeToDigits(recognizedText);
+
+            // Extract the last 10 digits if more exist, or exactly 10.
+            // Often people say +91 or zero before it.
+            let validMobile = digits;
+            if (validMobile.length > 10 && validMobile.startsWith('91')) {
+                validMobile = validMobile.slice(-10);
+            }
+            if (validMobile.length > 10 && validMobile.startsWith('0')) {
+                validMobile = validMobile.slice(-10);
+            }
+
+            if (validMobile.length !== 10) {
+                setValidationError(t('err_mobile_incomplete') || "I may not have heard exactly 10 digits. Please speak again clearly.");
+                return;
+            }
+
+            finalValue = validMobile; // Ensure form saves exactly 10 pure digits
+        }
+
+        setValidationError("");
+        activeStep.onFill(finalValue);
+
         if (currentStepIndex < steps.length - 1) {
             setRecognizedText("");
             setCurrentStepIndex(prev => prev + 1);
@@ -75,7 +119,7 @@ export default function VoiceGuidedInput({ steps, onComplete, onCancel }) {
             </div>
 
             <div
-                onClick={handleStartStep}
+                onClick={toggleListening}
                 style={{
                     width: '120px',
                     height: '120px',
@@ -94,9 +138,24 @@ export default function VoiceGuidedInput({ steps, onComplete, onCancel }) {
                 <Mic size={48} color={isListening ? 'var(--color-white)' : 'var(--color-green-primary)'} />
             </div>
 
+            {isPrompting && (
+                <div style={{ color: 'var(--color-green-primary)', fontWeight: 700, fontSize: '1.2rem', marginBottom: '24px', textAlign: 'center' }}>
+                    Assistant is speaking...
+                </div>
+            )}
+
             {isListening && (
-                <div style={{ color: 'var(--color-green-primary)', fontWeight: 700, fontSize: '1.2rem', marginBottom: '24px' }}>
-                    {t('listening')}
+                <div style={{ color: 'var(--color-green-primary)', fontWeight: 700, fontSize: '1.2rem', marginBottom: '24px', textAlign: 'center' }}>
+                    {t('listening') || 'Listening...'}
+                    <div style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--color-green-dark)', marginTop: '4px' }}>
+                        Speak now...
+                    </div>
+                </div>
+            )}
+
+            {isListening && recognizedText && (
+                <div style={{ backgroundColor: 'var(--color-white)', padding: '12px 24px', borderRadius: '12px', border: '1px solid var(--color-green-light)', fontStyle: 'italic', color: 'var(--color-green-medium)', marginBottom: '16px' }}>
+                    "{recognizedText}"
                 </div>
             )}
 
@@ -107,6 +166,12 @@ export default function VoiceGuidedInput({ steps, onComplete, onCancel }) {
                     <button onClick={handleStartStep} style={{ color: 'var(--color-green-deep)', fontWeight: 700, marginTop: '8px', padding: '8px 16px', backgroundColor: 'var(--color-green-very-light)', borderRadius: '8px' }}>
                         {t('speak_again')}
                     </button>
+                </div>
+            )}
+
+            {validationError && (
+                <div style={{ color: '#D32F2F', textAlign: 'center', marginTop: '16px', fontSize: '0.9rem', fontWeight: 600 }}>
+                    {validationError}
                 </div>
             )}
 
@@ -125,11 +190,15 @@ export default function VoiceGuidedInput({ steps, onComplete, onCancel }) {
                             color: 'var(--color-green-deep)',
                             border: '2px solid var(--color-green-primary)',
                             borderRadius: '12px',
-                            marginBottom: '24px',
+                            marginBottom: '16px',
                             textAlign: 'center',
                             backgroundColor: 'var(--color-bg-lightest)'
                         }}
                     />
+
+                    <p style={{ color: 'var(--color-green-dark)', fontWeight: 600, marginBottom: '24px' }}>
+                        Is this correct?
+                    </p>
 
                     <div style={{ display: 'flex', gap: '16px' }}>
                         <button

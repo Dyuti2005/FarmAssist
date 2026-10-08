@@ -7,11 +7,62 @@ export default function Onboarding() {
     const [step, setStep] = useState(1);
     const navigate = useNavigate();
 
-    const handleNext = () => {
+    const [profileData, setProfileData] = useState({
+        farmLocation: "Sehore, Madhya Pradesh",
+        farmSize: "5",
+        soilType: "black_cotton",
+        irrigationType: "drip"
+    });
+
+    const [cropData, setCropData] = useState({
+        cropName: "Premium Sharbati Wheat",
+        variety: "Sharbati 306",
+        sowingDate: "2023-11",
+        expectedHarvestDate: "2024-03",
+        quantity: 1000,
+        status: "PLANTED"
+    });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errorMsg, setErrorMsg] = useState('');
+
+    const handleNext = async () => {
         if (step < 4) {
             setStep(step + 1);
         } else {
-            navigate('/dashboard');
+            setIsSubmitting(true);
+            setErrorMsg('');
+            try {
+                const token = localStorage.getItem('fc_token');
+                if (!token) throw new Error('Not authenticated');
+
+                // 1. Update Profile
+                const profileRes = await fetch('http://localhost:5002/api/farmers/me', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(profileData)
+                });
+                if (!profileRes.ok) throw new Error('Failed to save profile');
+
+                // 2. Create Primary Crop
+                const cropRes = await fetch('http://localhost:5002/api/crops', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({
+                        cropName: cropData.cropName,
+                        variety: cropData.variety,
+                        sowingDate: cropData.sowingDate ? `${cropData.sowingDate}-01T00:00:00Z` : null,
+                        expectedHarvestDate: cropData.expectedHarvestDate ? `${cropData.expectedHarvestDate}-01T00:00:00Z` : null,
+                        quantity: 1000,
+                        status: "PLANTED"
+                    })
+                });
+                if (!cropRes.ok) throw new Error('Failed to save crop');
+
+                navigate('/dashboard');
+            } catch (err) {
+                setErrorMsg(err.message);
+                setIsSubmitting(false);
+            }
         }
     };
 
@@ -87,11 +138,11 @@ export default function Onboarding() {
                         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 1fr) minmax(250px, 1fr)', gap: '32px' }}>
                             <div>
                                 <label style={labelStyle}>{t('ob_location') || "Farm Location"}</label>
-                                <input style={inputStyle} defaultValue={t('ob_opt_sehore') || "Sehore, Madhya Pradesh"} />
+                                <input style={inputStyle} value={profileData.farmLocation} onChange={(e) => setProfileData({ ...profileData, farmLocation: e.target.value })} />
                             </div>
                             <div>
                                 <label style={labelStyle}>{t('ob_farm_size') || "Farm Size"}</label>
-                                <select style={inputStyle} defaultValue="5">
+                                <select style={inputStyle} value={profileData.farmSize} onChange={(e) => setProfileData({ ...profileData, farmSize: e.target.value })}>
                                     <option value="5">{t('ob_opt_acres5') || "5 Acres"}</option>
                                     <option value="10">{t('ob_opt_acres10') || "10 Acres"}</option>
                                     <option value="15">{t('ob_opt_acres15') || "15 Acres"}</option>
@@ -99,7 +150,7 @@ export default function Onboarding() {
                             </div>
                             <div>
                                 <label style={labelStyle}>{t('ob_soil_type') || "Soil Type"}</label>
-                                <select style={inputStyle} defaultValue="black_cotton">
+                                <select style={inputStyle} value={profileData.soilType} onChange={(e) => setProfileData({ ...profileData, soilType: e.target.value })}>
                                     <option value="black_cotton">{t('ob_opt_black_cotton') || "Black Cotton Soil"}</option>
                                     <option value="alluvial">{t('ob_opt_alluvial') || "Alluvial Soil"}</option>
                                     <option value="red_laterite">{t('ob_opt_red_laterite') || "Red Laterite Soil"}</option>
@@ -107,7 +158,7 @@ export default function Onboarding() {
                             </div>
                             <div>
                                 <label style={labelStyle}>{t('ob_irrigation') || "Irrigation Method"}</label>
-                                <select style={inputStyle} defaultValue="drip">
+                                <select style={inputStyle} value={profileData.irrigationType} onChange={(e) => setProfileData({ ...profileData, irrigationType: e.target.value })}>
                                     <option value="drip">{t('ob_opt_drip') || "Drip Irrigation"}</option>
                                     <option value="rainfed">{t('ob_opt_rainfed') || "Rainfed"}</option>
                                     <option value="canal">{t('ob_opt_canal') || "Canal Irrigation"}</option>
@@ -120,19 +171,19 @@ export default function Onboarding() {
                         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 1fr) minmax(250px, 1fr)', gap: '32px' }}>
                             <div>
                                 <label style={labelStyle}>{t('ob_primary_crop') || "Primary Crop"}</label>
-                                <input style={inputStyle} defaultValue={t('ob_opt_wheat') || "Premium Sharbati Wheat"} />
+                                <input style={inputStyle} value={cropData.cropName} onChange={(e) => setCropData({ ...cropData, cropName: e.target.value })} />
                             </div>
                             <div>
                                 <label style={labelStyle}>{t('ob_crop_variety') || "Crop Variety"}</label>
-                                <input style={inputStyle} defaultValue={t('ob_opt_var306') || "Sharbati 306"} />
+                                <input style={inputStyle} value={cropData.variety} onChange={(e) => setCropData({ ...cropData, variety: e.target.value })} />
                             </div>
                             <div>
                                 <label style={labelStyle}>{t('ob_sowing_date') || "Sowing Date"}</label>
-                                <input type="month" style={inputStyle} defaultValue="2023-11" />
+                                <input type="month" style={inputStyle} value={cropData.sowingDate} onChange={(e) => setCropData({ ...cropData, sowingDate: e.target.value })} />
                             </div>
                             <div>
                                 <label style={labelStyle}>{t('ob_harvest_date') || "Expected Harvest Date"}</label>
-                                <input type="month" style={inputStyle} defaultValue="2024-03" />
+                                <input type="month" style={inputStyle} value={cropData.expectedHarvestDate} onChange={(e) => setCropData({ ...cropData, expectedHarvestDate: e.target.value })} />
                             </div>
                         </div>
                     )}
@@ -186,22 +237,24 @@ export default function Onboarding() {
                         )}
                         <button
                             onClick={handleNext}
+                            disabled={isSubmitting}
                             style={{
                                 padding: '16px 48px',
                                 borderRadius: '16px',
-                                backgroundColor: 'var(--color-green-deep)',
+                                backgroundColor: isSubmitting ? 'var(--color-green-medium)' : 'var(--color-green-deep)',
                                 color: 'var(--color-white)',
                                 fontSize: '1.05rem',
                                 fontWeight: 800,
                                 border: 'none',
-                                cursor: 'pointer',
+                                cursor: isSubmitting ? 'not-allowed' : 'pointer',
                                 boxShadow: '0 8px 24px rgba(0, 90, 50, 0.15)',
                                 transition: 'all 0.2s'
                             }}
                         >
-                            {step < 4 ? (t('ob_continue') || "Continue") : (t('ob_finish') || "Finish")}
+                            {isSubmitting ? 'Saving...' : (step < 4 ? (t('ob_continue') || "Continue") : (t('ob_finish') || "Finish"))}
                         </button>
                     </div>
+                    {errorMsg && <div style={{ color: 'red', marginTop: '16px', textAlign: 'right' }}>{errorMsg}</div>}
 
                 </div>
             </div>

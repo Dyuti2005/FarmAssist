@@ -1,0 +1,229 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(uuid())
+  name          String
+  phone         String         @unique
+  email         String?
+  passwordHash  String
+  role          Role
+  language      String         @default("en")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  buyerProfile  BuyerProfile?
+  cartItems     CartItem[]
+  conversations Conversation[]
+  crops         Crop[]
+  farmerProfile FarmerProfile?
+  orders        Order[]
+  products      Product[]
+}
+
+model FarmerProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  farmLocation   String?
+  farmSize       String?
+  soilType       String?
+  irrigationType String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id])
+}
+
+model BuyerProfile {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  companyName  String?
+  businessType String?
+  location     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id])
+}
+
+model Crop {
+  id                  String              @id @default(uuid())
+  farmerId            String
+  cropName            String
+  variety             String?
+  sowingDate          DateTime?
+  expectedHarvestDate DateTime?
+  actualHarvestDate   DateTime?
+  quantity            Float?
+  status              String              @default("PLANTED")
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  farmer              User                @relation(fields: [farmerId], references: [id])
+  passports           CropPassport[]
+  digitalTwin         DigitalTwinProfile?
+  products            Product[]
+}
+
+model CropPassport {
+  id                        String   @id @default(uuid())
+  cropId                    String
+  passportNumber            String   @unique
+  blockchainStatus          String   @default("PENDING")
+  blockchainRecordId        String?
+  blockchainTransactionHash String?
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+  blockchainNetwork         String?
+  contractAddress           String?
+  dataHash                  String?
+  crop                      Crop     @relation(fields: [cropId], references: [id])
+}
+
+model Product {
+  id          String      @id @default(uuid())
+  farmerId    String
+  cropId      String?
+  productName String
+  quantity    Float
+  price       Float
+  unit        String
+  status      String      @default("AVAILABLE")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  cartItems   CartItem[]
+  orders      Order[]
+  orderItems  OrderItem[]
+  crop        Crop?       @relation(fields: [cropId], references: [id])
+  farmer      User        @relation(fields: [farmerId], references: [id])
+}
+
+model DigitalTwinProfile {
+  id                String                @id @default(uuid())
+  cropId            String                @unique
+  season            String?
+  farmStatus        String?
+  twinStatus        String?               @default("Active")
+  healthScore       Int?
+  healthStatus      String?
+  soilPh            Float?
+  soilOrganicMatter Float?
+  soilN             Int?
+  soilP             Int?
+  soilK             Int?
+  lastSoilTestDate  DateTime?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  activities        DigitalTwinActivity[]
+  crop              Crop                  @relation(fields: [cropId], references: [id])
+}
+
+model DigitalTwinActivity {
+  id           String             @id @default(uuid())
+  twinId       String
+  activityType String
+  date         DateTime
+  status       String             @default("completed")
+  createdAt    DateTime           @default(now())
+  twin         DigitalTwinProfile @relation(fields: [twinId], references: [id])
+}
+
+model Order {
+  id                        String      @id @default(uuid())
+  buyerId                   String
+  productId                 String?
+  totalAmount               Float       @default(0.0)
+  status                    String      @default("PENDING")
+  createdAt                 DateTime    @default(now())
+  updatedAt                 DateTime    @updatedAt
+  blockchainDataHash        String?
+  blockchainNetwork         String?
+  blockchainStatus          String?
+  blockchainTransactionHash String?     @unique
+  blockchainVerifiedAt      DateTime?
+  buyer                     User        @relation(fields: [buyerId], references: [id])
+  product                   Product?    @relation(fields: [productId], references: [id])
+  items                     OrderItem[]
+  payments                  Payment[]
+}
+
+model OrderItem {
+  id           String   @id @default(uuid())
+  orderId      String
+  productId    String?
+  productName  String
+  variety      String
+  quantity     Float
+  unit         String
+  priceAtOrder Float
+  subtotal     Float
+  createdAt    DateTime @default(now())
+  status       String   @default("CONFIRMED")
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product      Product? @relation(fields: [productId], references: [id])
+}
+
+model Conversation {
+  id        String        @id @default(uuid())
+  userId    String
+  title     String        @default("Farm Conversation")
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  language  String        @default("en")
+  messages  ChatMessage[]
+  user      User          @relation(fields: [userId], references: [id])
+}
+
+model ChatMessage {
+  id             String       @id @default(uuid())
+  conversationId String
+  sender         String
+  content        String
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+model CartItem {
+  id         String   @id @default(uuid())
+  buyerId    String
+  productId  String
+  quantity   Float
+  priceAtAdd Float
+  subtotal   Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  buyer      User     @relation(fields: [buyerId], references: [id])
+  product    Product  @relation(fields: [productId], references: [id])
+}
+
+model Payment {
+  id                String   @id @default(uuid())
+  orderId           String
+  amount            Float
+  currency          String   @default("INR")
+  status            String   @default("PENDING")
+  provider          String?  @default("RAZORPAY")
+  transactionId     String?  @unique
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  razorpayOrderId   String?  @unique
+  razorpaySignature String?
+  order             Order    @relation(fields: [orderId], references: [id])
+}
+
+model PaymentWebhookEvent {
+  id          String   @id @default(uuid())
+  eventId     String   @unique
+  eventType   String
+  status      String   @default("PROCESSED")
+  receivedAt  DateTime @default(now())
+  processedAt DateTime @default(now())
+  error       String?
+}
+
+enum Role {
+  FARMER
+  BUYER
+}

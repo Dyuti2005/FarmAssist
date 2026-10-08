@@ -1,0 +1,42 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_20-4c1b27f4a2405e98e663efc4228528d955d612ab",
+  "solcVersion": "0.8.20",
+  "solcLongVersion": "0.8.20+commit.a1b79de6",
+  "compilerType": "solc",
+  "userSourceNameMap": {
+    "contracts/CropPassportRegistry.sol": "project/contracts/CropPassportRegistry.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "shanghai",
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/CropPassportRegistry.sol": {
+        "content": "// SPDX-License-Identifier: MIT\r\npragma solidity ^0.8.20;\r\n\r\ncontract CropPassportRegistry {\r\n    struct PassportRecord {\r\n        string internalPassportId;\r\n        string dataHash;\r\n        uint256 timestamp;\r\n        address submittingWallet;\r\n    }\r\n\r\n    mapping(string => PassportRecord) public passports;\r\n\r\n    event PassportRegistered(\r\n        string indexed internalPassportId,\r\n        string dataHash,\r\n        uint256 timestamp,\r\n        address indexed submittingWallet\r\n    );\r\n\r\n    function registerPassport(string memory _internalPassportId, string memory _dataHash) public {\r\n        require(passports[_internalPassportId].timestamp == 0, \"Passport ID already exists on-chain\");\r\n\r\n        PassportRecord memory newRecord = PassportRecord({\r\n            internalPassportId: _internalPassportId,\r\n            dataHash: _dataHash,\r\n            timestamp: block.timestamp,\r\n            submittingWallet: msg.sender\r\n        });\r\n\r\n        passports[_internalPassportId] = newRecord;\r\n\r\n        emit PassportRegistered(\r\n            _internalPassportId,\r\n            _dataHash,\r\n            block.timestamp,\r\n            msg.sender\r\n        );\r\n    }\r\n}\r\n"
+      }
+    }
+  }
+}

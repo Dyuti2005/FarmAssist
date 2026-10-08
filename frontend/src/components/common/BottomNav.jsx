@@ -21,7 +21,7 @@ export default function BottomNav() {
     const navItems = getNavItems();
 
     return (
-        <div style={{
+        <div className="bottom-nav-container" style={{
             position: 'fixed',
             bottom: 0,
             left: 0,
@@ -34,6 +34,15 @@ export default function BottomNav() {
             borderTop: '1px solid var(--color-green-very-light)',
             zIndex: 1000
         }}>
+            <style>
+                {`
+                @media (min-width: 768px) {
+                    .bottom-nav-container {
+                        display: none !important;
+                    }
+                }
+                `}
+            </style>
             {navItems.map((item) => (
                 <NavLink
                     key={item.path}

@@ -1,81 +1,79 @@
-import React from 'react';
-import { User, Bell, Shield, LogOut } from 'lucide-react';
+import React, { useState } from 'react';
+import { User, Bell, Shield, LogOut, Globe, Moon, CreditCard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function BuyerSettings() {
     const navigate = useNavigate();
+    const { lang, setLang, t } = useLanguage();
+    const [notifications, setNotifications] = useState(true);
 
     const handleLogout = () => {
-        localStorage.removeItem('fc_auth');
-        localStorage.removeItem('fc_role');
+        localStorage.removeItem('fc_token');
         navigate('/welcome');
     };
 
     return (
         <div style={{ paddingBottom: '40px', maxWidth: '800px' }}>
             <div style={{ marginBottom: '32px' }}>
-                <h1 style={{ color: 'var(--color-green-deep)', fontSize: '2rem', fontWeight: 900, marginBottom: '8px', letterSpacing: '-0.02em' }}>Settings</h1>
+                <h1 style={{ color: 'var(--color-green-deep)', fontSize: '2rem', fontWeight: 900, marginBottom: '8px', letterSpacing: '-0.02em' }}>{t('side_settings') || 'Settings'}</h1>
                 <p style={{ color: 'var(--color-green-dark)', fontSize: '1.05rem', fontWeight: 500 }}>Manage your preferences and account details.</p>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                {/* Profile Settings */}
-                <div style={{ backgroundColor: 'var(--color-white)', padding: '24px', borderRadius: '16px', border: '1px solid var(--color-green-very-light)', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-                        <div style={{ padding: '10px', backgroundColor: 'var(--color-bg-lightest)', borderRadius: '12px' }}>
-                            <User size={22} color="var(--color-green-primary)" />
-                        </div>
-                        <h3 style={{ color: 'var(--color-green-deep)', fontSize: '1.2rem', fontWeight: 800 }}>Profile Information</h3>
-                    </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                        <div>
-                            <label style={{ display: 'block', color: 'var(--color-green-dark)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '8px' }}>Full Name</label>
-                            <input type="text" defaultValue="TechNexus Buyer" style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-green-very-light)', outline: 'none', color: 'var(--color-green-deep)', fontWeight: 600 }} />
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', color: 'var(--color-green-dark)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '8px' }}>Business Name</label>
-                            <input type="text" defaultValue="Nexus Agri-Tech Ltd" style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-green-very-light)', outline: 'none', color: 'var(--color-green-deep)', fontWeight: 600 }} />
-                        </div>
-                        <div style={{ gridColumn: '1 / -1' }}>
-                            <label style={{ display: 'block', color: 'var(--color-green-dark)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '8px' }}>Email Address</label>
-                            <input type="email" defaultValue="buyer@technexus.in" style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-green-very-light)', outline: 'none', color: 'var(--color-green-deep)', fontWeight: 600 }} />
-                        </div>
-                    </div>
-                    <button style={{ marginTop: '24px', backgroundColor: 'var(--color-green-primary)', color: 'white', padding: '10px 20px', borderRadius: '8px', border: 'none', fontWeight: 700, cursor: 'pointer' }}>
-                        Save Changes
-                    </button>
-                </div>
+                {/* Account Settings */}
+                <div style={{ backgroundColor: 'var(--color-white)', padding: '32px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)', border: '1px solid var(--color-green-very-light)' }}>
+                    <h3 style={{ margin: '0 0 24px 0', color: 'var(--color-green-deep)', fontSize: '1.25rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <User size={24} color="var(--color-green-primary)" /> Account Preferences
+                    </h3>
 
-                {/* Notification Preferences */}
-                <div style={{ backgroundColor: 'var(--color-white)', padding: '24px', borderRadius: '16px', border: '1px solid var(--color-green-very-light)', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-                        <div style={{ padding: '10px', backgroundColor: 'var(--color-bg-lightest)', borderRadius: '12px' }}>
-                            <Bell size={22} color="var(--color-green-primary)" />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '16px', borderBottom: '1px solid var(--color-green-very-light)' }}>
+                            <div>
+                                <div style={{ color: 'var(--color-green-deep)', fontWeight: 700, fontSize: '1.05rem' }}>Language</div>
+                                <div style={{ color: 'var(--color-green-dark)', fontSize: '0.9rem', marginTop: '4px' }}>Choose your preferred language for the interface.</div>
+                            </div>
+                            <select
+                                value={lang}
+                                onChange={(e) => setLang(e.target.value)}
+                                style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--color-green-light)', backgroundColor: 'var(--color-bg-lightest)', color: 'var(--color-green-deep)', fontWeight: 600, outline: 'none', cursor: 'pointer' }}
+                            >
+                                <option value="en">English</option>
+                                <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                                <option value="hi">हिंदी (Hindi)</option>
+                            </select>
                         </div>
-                        <h3 style={{ color: 'var(--color-green-deep)', fontSize: '1.2rem', fontWeight: 800 }}>Notification Preferences</h3>
-                    </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
-                            <input type="checkbox" defaultChecked style={{ width: '18px', height: '18px', accentColor: 'var(--color-green-primary)' }} />
-                            <span style={{ color: 'var(--color-green-deep)', fontWeight: 600 }}>Order Updates & Shipping</span>
-                        </label>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
-                            <input type="checkbox" defaultChecked style={{ width: '18px', height: '18px', accentColor: 'var(--color-green-primary)' }} />
-                            <span style={{ color: 'var(--color-green-deep)', fontWeight: 600 }}>New Contract Approvals</span>
-                        </label>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
-                            <input type="checkbox" style={{ width: '18px', height: '18px', accentColor: 'var(--color-green-primary)' }} />
-                            <span style={{ color: 'var(--color-green-deep)', fontWeight: 600 }}>Marketing & Offers</span>
-                        </label>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '16px', borderBottom: '1px solid var(--color-green-very-light)' }}>
+                            <div>
+                                <div style={{ color: 'var(--color-green-deep)', fontWeight: 700, fontSize: '1.05rem' }}>Push Notifications</div>
+                                <div style={{ color: 'var(--color-green-dark)', fontSize: '0.9rem', marginTop: '4px' }}>Receive alerts for contracts and orders.</div>
+                            </div>
+                            <div
+                                onClick={() => setNotifications(!notifications)}
+                                style={{ width: '48px', height: '24px', backgroundColor: notifications ? 'var(--color-green-primary)' : '#E0E0E0', borderRadius: '12px', position: 'relative', cursor: 'pointer', transition: '0.3s' }}
+                            >
+                                <div style={{ width: '20px', height: '20px', backgroundColor: 'white', borderRadius: '50%', position: 'absolute', top: '2px', left: notifications ? '26px' : '2px', transition: '0.3s' }}></div>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                                <div style={{ color: 'var(--color-green-deep)', fontWeight: 700, fontSize: '1.05rem' }}>Two-Factor Authentication</div>
+                                <div style={{ color: 'var(--color-green-dark)', fontSize: '0.9rem', marginTop: '4px' }}>Enhanced account security.</div>
+                            </div>
+                            <button style={{ padding: '8px 16px', backgroundColor: 'var(--color-bg-lightest)', border: '1px solid var(--color-green-very-light)', borderRadius: '8px', color: 'var(--color-green-deep)', fontWeight: 700, cursor: 'pointer' }}>
+                                Enable 2FA
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 {/* Logout */}
                 <div style={{ backgroundColor: 'var(--color-white)', padding: '24px', borderRadius: '16px', border: '1px solid #FFEBEE', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                        <h3 style={{ color: '#D32F2F', fontSize: '1.2rem', fontWeight: 800, marginBottom: '4px' }}>Log Out</h3>
+                        <h3 style={{ color: '#D32F2F', fontSize: '1.2rem', fontWeight: 800, margin: '0 0 4px 0' }}>Log Out</h3>
                         <p style={{ color: '#D32F2F', opacity: 0.8, fontSize: '0.9rem', fontWeight: 500, margin: 0 }}>End your current session securely.</p>
                     </div>
                     <button onClick={handleLogout} style={{ backgroundColor: '#FFEBEE', color: '#D32F2F', padding: '12px 24px', borderRadius: '8px', border: 'none', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>

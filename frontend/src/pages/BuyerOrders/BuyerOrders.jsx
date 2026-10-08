@@ -1,59 +1,129 @@
-import React from 'react';
-import { ArrowRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowRight, Package, Clock, CheckCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useLanguage } from '../../context/LanguageContext';
 
-const DUMMY_ORDERS = [
-    { id: '#ORD-9021', date: '28 Aug 2026', prod: 'Premium Sharbati Wheat', qty: '2,000 kg', total: '₹64,000', status: 'Confirmed', statBg: '#E6F4E1', statColor: '#168A4A' },
-    { id: '#ORD-9018', date: '26 Aug 2026', prod: 'Toor Dal (Pigeon Pea)', qty: '500 kg', total: '₹62,500', status: 'Dispatched', statBg: '#E3F2FD', statColor: '#1565C0' },
-    { id: '#ORD-9005', date: '21 Aug 2026', prod: 'Kashmiri Saffron', qty: '2 kg', total: '₹5,00,000', status: 'Delivered', statBg: '#F3E5F5', statColor: '#6A1B9A' },
-    { id: '#ORD-8991', date: '15 Aug 2026', prod: 'Raw Groundnut', qty: '1,500 kg', total: '₹97,500', status: 'Processing', statBg: '#FFF3E0', statColor: '#E65100' },
-    { id: '#ORD-8980', date: '10 Aug 2026', prod: 'Organic Basmati Rice', qty: '3,000 kg', total: '₹3,30,000', status: 'Delivered', statBg: '#F3E5F5', statColor: '#6A1B9A' },
-    { id: '#ORD-8975', date: '02 Aug 2026', prod: 'Black Gram (Urad Dal)', qty: '1,000 kg', total: '₹95,000', status: 'Delivered', statBg: '#F3E5F5', statColor: '#6A1B9A' },
+const staticOrders = [
+    {
+        id: 'FC-ORD-2026-001',
+        previewName: 'Export Grade Grapes',
+        itemCount: 1,
+        status: 'CONFIRMED',
+        date: '2026-10-09',
+        totalAmount: 12000,
+    },
+    {
+        id: 'FC-ORD-2026-002',
+        previewName: 'Alphonso Mango',
+        itemCount: 1,
+        status: 'PROCESSING',
+        date: '2026-10-08',
+        totalAmount: 25000,
+    },
+    {
+        id: 'FC-ORD-2026-003',
+        previewName: 'Kashmiri Apples',
+        itemCount: 1,
+        status: 'DELIVERED',
+        date: '2026-10-05',
+        totalAmount: 18000,
+    }
 ];
 
 export default function BuyerOrders() {
+    const { t } = useLanguage();
+    const [orders, setOrders] = useState(staticOrders);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                const token = localStorage.getItem('fc_token');
+                const res = await fetch(`http://localhost:5002/api/orders`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    setOrders([...staticOrders, ...data.orders]);
+                } else {
+                    console.error('Failed to fetch orders.');
+                }
+            } catch (e) {
+                setError('Network error loading orders.');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchOrders();
+    }, []);
+
+    const getStatusStyle = (status) => {
+        switch (status) {
+            case 'PENDING': return { bg: '#FFF3E0', color: '#E65100' };
+            case 'CONFIRMED': return { bg: '#E6F4E1', color: '#168A4A' };
+            case 'PROCESSING': return { bg: '#E3F2FD', color: '#1565C0' };
+            case 'DELIVERED':
+            case 'COMPLETED': return { bg: '#F3E5F5', color: '#6A1B9A' };
+            case 'CANCELLED':
+            case 'REJECTED': return { bg: '#FFEBEE', color: '#D32F2F' };
+            default: return { bg: '#E3F2FD', color: '#1565C0' };
+        }
+    };
+
     return (
         <div style={{ paddingBottom: '40px', maxWidth: '800px', margin: '0 auto' }}>
             <div style={{ marginBottom: '32px' }}>
-                <h1 style={{ color: 'var(--color-green-deep)', fontSize: '2rem', fontWeight: 900, marginBottom: '8px', letterSpacing: '-0.02em' }}>My Orders</h1>
-                <p style={{ color: 'var(--color-green-dark)', fontSize: '1.05rem', fontWeight: 500 }}>Track and manage your agricultural purchases.</p>
+                <h1 style={{ color: 'var(--color-green-deep)', fontSize: '2rem', fontWeight: 900, marginBottom: '8px', letterSpacing: '-0.02em' }}>{t('my_orders') || 'My Orders'}</h1>
+                <p style={{ color: 'var(--color-green-dark)', fontSize: '1.05rem', fontWeight: 500 }}>{t('track_orders_desc') || 'Track and manage your agricultural purchases.'}</p>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {DUMMY_ORDERS.map((order, i) => (
-                    <div key={i} style={{ backgroundColor: 'var(--color-white)', padding: '24px', borderRadius: '16px', border: '1px solid var(--color-green-very-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            <div style={{ color: 'var(--color-green-dark)', fontWeight: 700, fontSize: '0.9rem', marginBottom: '4px' }}>
-                                {order.id}
-                            </div>
-                            <div style={{ color: 'var(--color-green-deep)', fontWeight: 800, fontSize: '1.15rem' }}>
-                                {order.prod}
-                            </div>
-                            <div style={{ color: 'var(--color-green-medium)', fontWeight: 600, fontSize: '0.9rem' }}>
-                                {order.qty}
-                            </div>
-                            <div style={{ color: 'var(--color-green-medium)', fontWeight: 500, fontSize: '0.85rem', marginTop: '4px' }}>
-                                {order.date}
-                            </div>
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between', height: '100%', gap: '12px' }}>
-                            <span style={{ backgroundColor: order.statBg, color: order.statColor, padding: '6px 12px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 800 }}>
-                                {order.status}
-                            </span>
-
-                            <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '12px' }}>
-                                <div style={{ color: 'var(--color-green-deep)', fontWeight: 900, fontSize: '1.2rem' }}>
-                                    {order.total}
+            {loading ? (
+                <div style={{ color: 'var(--color-green-deep)', fontWeight: 600 }}>{t('loading_orders') || 'Loading orders...'}</div>
+            ) : error ? (
+                <div style={{ backgroundColor: '#FFEBEE', color: '#D32F2F', padding: '24px', borderRadius: '16px', fontWeight: 700 }}>{error}</div>
+            ) : orders.length === 0 ? (
+                <div style={{ backgroundColor: 'white', padding: '64px 32px', borderRadius: '24px', textAlign: 'center', border: '1px dashed var(--color-green-medium)' }}>
+                    <Package size={48} color="var(--color-green-light)" style={{ marginBottom: '16px' }} />
+                    <h3 style={{ color: 'var(--color-green-deep)', fontSize: '1.25rem', marginBottom: '8px' }}>{t('no_orders') || 'No Orders Found'}</h3>
+                    <p style={{ color: 'var(--color-green-dark)' }}>{t('no_orders_desc') || "You haven't placed any orders yet."}</p>
+                </div>
+            ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {orders.map((order) => {
+                        const sStyle = getStatusStyle(order.status);
+                        return (
+                            <div key={order.id} style={{ backgroundColor: 'var(--color-white)', padding: '24px', borderRadius: '16px', border: '1px solid var(--color-green-very-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
+                                        <div style={{ fontWeight: 800, color: 'var(--color-green-primary)' }}>
+                                            {order.id.slice(0, 8).toUpperCase()}
+                                        </div>
+                                        <div style={{ backgroundColor: sStyle.bg, color: sStyle.color, padding: '4px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase' }}>
+                                            {order.status}
+                                        </div>
+                                    </div>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-green-deep)' }}>
+                                        {order.previewName} {order.itemCount > 1 ? `+ ${order.itemCount - 1} items` : ''}
+                                    </div>
+                                    <div style={{ color: 'var(--color-green-dark)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <Clock size={14} /> {new Date(order.date).toLocaleDateString()}
+                                    </div>
                                 </div>
-                                <button style={{ background: 'none', border: 'none', color: 'var(--color-green-primary)', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', padding: 0 }}>
-                                    View Details <ArrowRight size={16} />
-                                </button>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--color-green-medium)', fontWeight: 600 }}>{t('total_value') || 'Total Value'}</div>
+                                        <div style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--color-green-deep)' }}>₹{order.totalAmount}</div>
+                                    </div>
+                                    <Link to={`/buyer/orders/${order.id}`} style={{ backgroundColor: 'var(--color-bg-lightest)', color: 'var(--color-green-deep)', padding: '12px', borderRadius: '50%', textDecoration: 'none', border: '2px solid var(--color-green-very-light)', display: 'flex' }}>
+                                        <ArrowRight size={20} />
+                                    </Link>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
+                        );
+                    })}
+                </div>
+            )}
         </div>
     );
 }
