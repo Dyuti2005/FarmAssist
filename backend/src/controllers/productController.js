@@ -21,20 +21,26 @@ exports.getMyProducts = async (req, res) => {
 exports.createProduct = async (req, res) => {
     try {
         const farmerId = req.user.userId;
-        const { cropId, productName, quantity, price, unit } = req.body;
+        const { cropId, productName, quantity, price } = req.body;
+        // Only 'kg' and 'tonnes' are accepted. 'quintal' is no longer supported.
+        const unit = (req.body.unit || 'kg').toLowerCase();
+        const ALLOWED_UNITS = ['kg', 'tonnes'];
 
-        if (!productName || !quantity || !price || !unit) {
+        if (!productName || !quantity || !price) {
             return res.status(400).json({ success: false, message: "Missing required fields" });
+        }
+        if (!ALLOWED_UNITS.includes(unit)) {
+            return res.status(400).json({ success: false, message: `Invalid unit '${unit}'. Allowed values: kg, tonnes.` });
         }
 
         const qtyNum = parseFloat(quantity);
         const priceNum = parseFloat(price);
 
         if (isNaN(qtyNum) || qtyNum <= 0) {
-            return res.status(400).json({ success: false, message: "Invalid quantity" });
+            return res.status(400).json({ success: false, message: "Invalid quantity. Must be a positive number (in kg)." });
         }
         if (isNaN(priceNum) || priceNum < 0) {
-            return res.status(400).json({ success: false, message: "Invalid price" });
+            return res.status(400).json({ success: false, message: "Invalid price. Must be a non-negative number (₹ per kg)." });
         }
 
         // Validate if cropId is provided, the crop actually belongs to the farmer
@@ -79,7 +85,15 @@ exports.updateProduct = async (req, res) => {
 
         const updateData = {};
         if (productName !== undefined) updateData.productName = productName;
-        if (unit !== undefined) updateData.unit = unit;
+
+        if (unit !== undefined) {
+            const ALLOWED_UNITS = ['kg', 'tonnes'];
+            const normalizedUnit = unit.toLowerCase();
+            if (!ALLOWED_UNITS.includes(normalizedUnit)) {
+                return res.status(400).json({ success: false, message: `Invalid unit '${unit}'. Allowed values: kg, tonnes.` });
+            }
+            updateData.unit = normalizedUnit;
+        }
 
         if (quantity !== undefined) {
             const qtyNum = parseFloat(quantity);
