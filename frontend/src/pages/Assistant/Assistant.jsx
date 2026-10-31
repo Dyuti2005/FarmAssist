@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { useVoiceInput } from '../../hooks/useVoiceInput';
 import { useSpeechSynthesis } from '../../hooks/useSpeechSynthesis';
+import { API_BASE_URL } from '../../services/apiConfig.js';
 
 const getInitialMessages = (t) => [
     { sender: 'assistant', text: t('assistant_initial') || "Hello! I'm your Farm AI Assistant. I have reviewed your farm's digital twin. How can I help you today?", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
@@ -32,7 +33,7 @@ export default function Assistant() {
         stopSpeech();
         const token = localStorage.getItem('fc_token');
         try {
-            const res = await fetch(`http://localhost:5002/api/ai/conversations/${id}/messages`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const res = await fetch(`${API_BASE_URL}/api/ai/conversations/${id}/messages`, { headers: { 'Authorization': `Bearer ${token}` } });
             if (res.ok) {
                 const data = await res.json();
                 setMessages(data.messages.map(m => ({
@@ -51,7 +52,7 @@ export default function Assistant() {
     const deleteConversation = async (id) => {
         const token = localStorage.getItem('fc_token');
         try {
-            const res = await fetch(`http://localhost:5002/api/ai/conversations/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            const res = await fetch(`${API_BASE_URL}/api/ai/conversations/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
             if (res.ok) {
                 setConversations(prev => prev.filter(c => c.id !== id));
                 if (activeConvId === id) {
@@ -68,7 +69,7 @@ export default function Assistant() {
         const fetchConvs = async () => {
             const token = localStorage.getItem('fc_token');
             try {
-                const res = await fetch('http://localhost:5002/api/ai/conversations', { headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await fetch(`${API_BASE_URL}/api/ai/conversations`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (res.ok) {
                     const data = await res.json();
                     setConversations(data.conversations);
@@ -76,7 +77,7 @@ export default function Assistant() {
                         loadConversation(data.conversations[0].id);
                     } else {
                         // Create initial default conversation to map to
-                        const newRes = await fetch('http://localhost:5002/api/ai/conversations', {
+                        const newRes = await fetch(`${API_BASE_URL}/api/ai/conversations`, {
                             method: 'POST',
                             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                             body: JSON.stringify({ title: 'General Farm Chat' })
@@ -141,7 +142,7 @@ export default function Assistant() {
 
         try {
             const token = localStorage.getItem('fc_token');
-            const res = await fetch(`http://localhost:5002/api/ai/conversations/${activeConvId}/messages`, {
+            const res = await fetch(`${API_BASE_URL}/api/ai/conversations/${activeConvId}/messages`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -212,7 +213,7 @@ export default function Assistant() {
                                     setMessages([]);
                                     const createNew = async () => {
                                         const token = localStorage.getItem('fc_token');
-                                        const res = await fetch('http://localhost:5002/api/ai/conversations', {
+                                        const res = await fetch(`${API_BASE_URL}/api/ai/conversations`, {
                                             method: 'POST',
                                             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                                             body: JSON.stringify({ title: `Chat ${new Date().toLocaleDateString()}`, language: newChatLang })

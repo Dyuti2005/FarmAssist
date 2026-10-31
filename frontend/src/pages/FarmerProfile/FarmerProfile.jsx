@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, User, Phone, MapPin, Globe, Award, LogOut, ShieldCheck, Edit2, Leaf, Tractor } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
+import { API_BASE_URL } from '../../services/apiConfig.js';
 
 export default function FarmerProfile() {
     const { t, lang } = useLanguage();
@@ -14,13 +15,13 @@ export default function FarmerProfile() {
         const fetchProfile = async () => {
             try {
                 const token = localStorage.getItem('fc_token');
-                const pRes = await fetch('http://localhost:5002/api/farmers/me', {
+                const pRes = await fetch(`${API_BASE_URL}/api/farmers/me`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (!pRes.ok) throw new Error('Failed to fetch profile');
                 const pData = await pRes.json();
 
-                const cRes = await fetch('http://localhost:5002/api/crops', {
+                const cRes = await fetch(`${API_BASE_URL}/api/crops`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const cData = await cRes.json();

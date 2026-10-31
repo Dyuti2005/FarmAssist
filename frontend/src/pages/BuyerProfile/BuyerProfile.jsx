@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, LogOut, User, MapPin, Building, Phone, Mail, ShoppingCart, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { API_BASE_URL } from '../../services/apiConfig.js';
 
 export default function BuyerProfile() {
     const [profile, setProfile] = useState(null);
@@ -10,7 +11,7 @@ export default function BuyerProfile() {
         const fetchProfile = async () => {
             try {
                 const token = localStorage.getItem('fc_token');
-                const res = await fetch('http://localhost:5002/api/buyers/me', {
+                const res = await fetch(`${API_BASE_URL}/api/buyers/me`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();

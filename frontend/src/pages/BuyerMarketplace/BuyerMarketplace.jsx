@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { getProductImage } from '../../utils/imageMapper';
 import { sanitizeProductsList } from '../../utils/dataCleaner';
 import { useLanguage } from '../../context/LanguageContext';
+import { API_BASE_URL } from '../../services/apiConfig.js';
 
 export default function BuyerMarketplace() {
     const { t } = useLanguage();
@@ -20,7 +21,7 @@ export default function BuyerMarketplace() {
             try {
                 const token = localStorage.getItem('fc_token');
                 // Dynamically build URL with search parameters
-                let url = `http://localhost:5002/api/marketplace?category=${encodeURIComponent(category)}`;
+                let url = `${API_BASE_URL}/api/marketplace?category=${encodeURIComponent(category)}`;
                 if (search.trim()) {
                     url += `&search=${encodeURIComponent(search.trim())}`;
                 }

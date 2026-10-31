@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
+import { API_BASE_URL } from '../../services/apiConfig.js';
 
 export default function Onboarding() {
     const { t, lang, setLanguage } = useLanguage();
@@ -36,7 +37,7 @@ export default function Onboarding() {
                 if (!token) throw new Error('Not authenticated');
 
                 // 1. Update Profile
-                const profileRes = await fetch('http://localhost:5002/api/farmers/me', {
+                const profileRes = await fetch(`${API_BASE_URL}/api/farmers/me`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify(profileData)
@@ -44,7 +45,7 @@ export default function Onboarding() {
                 if (!profileRes.ok) throw new Error('Failed to save profile');
 
                 // 2. Create Primary Crop
-                const cropRes = await fetch('http://localhost:5002/api/crops', {
+                const cropRes = await fetch(`${API_BASE_URL}/api/crops`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({

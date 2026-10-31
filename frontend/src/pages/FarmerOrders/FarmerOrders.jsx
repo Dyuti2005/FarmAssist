@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Clock, ArrowRight, Expand } from 'lucide-react';
+import { API_BASE_URL } from '../../services/apiConfig.js';
 
 export default function FarmerOrders() {
     const [orders, setOrders] = useState([]);
@@ -14,7 +15,7 @@ export default function FarmerOrders() {
     const verifyOnBlockchain = async (orderId) => {
         setVerifying(prev => ({ ...prev, [orderId]: true }));
         try {
-            const res = await fetch(`http://localhost:5002/api/farmer/orders/${orderId}/blockchain-verify`, {
+            const res = await fetch(`${API_BASE_URL}/api/farmer/orders/${orderId}/blockchain-verify`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -35,7 +36,7 @@ export default function FarmerOrders() {
     const fetchOrders = async () => {
         try {
             setLoading(true);
-            const res = await fetch(`http://localhost:5002/api/farmer/orders`, {
+            const res = await fetch(`${API_BASE_URL}/api/farmer/orders`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -59,7 +60,7 @@ export default function FarmerOrders() {
         if (!window.confirm(`Are you sure you want to mark this order as ${newStatus}?`)) return;
         setStatusUpdating(true);
         try {
-            const res = await fetch(`http://localhost:5002/api/farmer/orders/${orderId}/status`, {
+            const res = await fetch(`${API_BASE_URL}/api/farmer/orders/${orderId}/status`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,

@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { getProductImage } from '../../utils/imageMapper';
 import { sanitizeProduct } from '../../utils/dataCleaner';
 import { useLanguage } from '../../context/LanguageContext';
+import { API_BASE_URL } from '../../services/apiConfig.js';
 
 export default function BuyerCart() {
     const { t } = useLanguage();
@@ -18,7 +19,7 @@ export default function BuyerCart() {
     const fetchCart = async () => {
         try {
             setLoading(true);
-            const res = await fetch('http://localhost:5002/api/cart', {
+            const res = await fetch(`${API_BASE_URL}/api/cart`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -51,7 +52,7 @@ export default function BuyerCart() {
         if (newQty <= 0) return;
 
         try {
-            const res = await fetch(`http://localhost:5002/api/cart/${id}`, {
+            const res = await fetch(`${API_BASE_URL}/api/cart/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -73,7 +74,7 @@ export default function BuyerCart() {
 
     const removeItem = async (id) => {
         try {
-            const res = await fetch(`http://localhost:5002/api/cart/${id}`, {
+            const res = await fetch(`${API_BASE_URL}/api/cart/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -92,7 +93,7 @@ export default function BuyerCart() {
         setPlacingOrder(true);
         setError(null);
         try {
-            const res = await fetch(`http://localhost:5002/api/orders`, {
+            const res = await fetch(`${API_BASE_URL}/api/orders`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

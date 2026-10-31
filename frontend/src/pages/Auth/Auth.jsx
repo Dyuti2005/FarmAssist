@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { useLanguage } from '../../context/LanguageContext';
 import VoiceGuidedInput from '../../components/common/VoiceGuidedInput';
 import { normalizeToDigits } from '../../services/voice/speechService';
+import { API_BASE_URL } from '../../services/apiConfig.js';
 
 // --- INLINE SVGs FOR LOGIN/REGISTER REDESIGN ---
 const FarmerLandscapeSVG = () => (
@@ -164,7 +165,7 @@ export default function Auth({ defaultView = "login" }) {
         if (!handleValidation()) return;
 
         try {
-            const res = await fetch('http://localhost:5002/api/auth/login', {
+            const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phone: formData.mobile, password: formData.password })
@@ -190,7 +191,7 @@ export default function Auth({ defaultView = "login" }) {
         if (!handleValidation()) return;
 
         try {
-            const res = await fetch('http://localhost:5002/api/auth/register', {
+            const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

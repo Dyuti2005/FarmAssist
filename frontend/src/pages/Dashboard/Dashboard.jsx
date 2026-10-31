@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Mic, ArrowRight, Sun, Leaf, ShoppingBag, ShieldCheck, ShoppingCart, Activity, MapPin, Bell, User, Lightbulb } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { API_BASE_URL } from '../../services/apiConfig.js';
 
 export default function Dashboard() {
     const { t } = useLanguage();
@@ -17,8 +18,8 @@ export default function Dashboard() {
                     setLoading(false);
                     return;
                 }
-                const pRes = await fetch('http://localhost:5002/api/farmers/me', { headers: { 'Authorization': `Bearer ${token}` } });
-                const cRes = await fetch('http://localhost:5002/api/crops', { headers: { 'Authorization': `Bearer ${token}` } });
+                const pRes = await fetch(`${API_BASE_URL}/api/farmers/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const cRes = await fetch(`${API_BASE_URL}/api/crops`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (pRes.ok && cRes.ok) {
                     const profile = await pRes.json();
                     const crops = await cRes.json();
@@ -28,10 +29,10 @@ export default function Dashboard() {
 
                     if (crops.length > 0) {
                         try {
-                            const tRes = await fetch(`http://localhost:5002/api/digital-twin/${crops[0].id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                            const tRes = await fetch(`${API_BASE_URL}/api/digital-twin/${crops[0].id}`, { headers: { 'Authorization': `Bearer ${token}` } });
                             if (tRes.ok) twin = await tRes.json();
 
-                            const iRes = await fetch(`http://localhost:5002/api/digital-twin/${crops[0].id}/insights`, { headers: { 'Authorization': `Bearer ${token}` } });
+                            const iRes = await fetch(`${API_BASE_URL}/api/digital-twin/${crops[0].id}/insights`, { headers: { 'Authorization': `Bearer ${token}` } });
                             if (iRes.ok) {
                                 const iData = await iRes.json();
                                 if (iData.success && iData.insights.length > 0) {

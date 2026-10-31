@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowRight, Package, Clock, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
+import { API_BASE_URL } from '../../services/apiConfig.js';
 
 const staticOrders = [
     {
@@ -40,7 +41,7 @@ export default function BuyerOrders() {
         const fetchOrders = async () => {
             try {
                 const token = localStorage.getItem('fc_token');
-                const res = await fetch(`http://localhost:5002/api/orders`, {
+                const res = await fetch(`${API_BASE_URL}/api/orders`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();

@@ -3,6 +3,7 @@ import { ArrowLeft, MapPin, Package, Calendar, ShieldCheck, Heart, User, Buildin
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getProductImage } from '../../utils/imageMapper';
 import { sanitizeProduct } from '../../utils/dataCleaner';
+import { API_BASE_URL } from '../../services/apiConfig.js';
 
 export default function BuyerProductDetails() {
     const { id } = useParams();
@@ -19,7 +20,7 @@ export default function BuyerProductDetails() {
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const res = await fetch(`http://localhost:5002/api/marketplace/${id}`, {
+                const res = await fetch(`${API_BASE_URL}/api/marketplace/${id}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
@@ -46,7 +47,7 @@ export default function BuyerProductDetails() {
         setCartSuccess('');
 
         try {
-            const res = await fetch('http://localhost:5002/api/cart', {
+            const res = await fetch(`${API_BASE_URL}/api/cart`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,

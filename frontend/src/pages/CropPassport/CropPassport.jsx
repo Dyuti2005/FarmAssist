@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Sprout, MapPin, Droplets, BookOpen, Activity, Tractor, CheckCircle2, ShieldCheck, ThermometerSun } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
+import { API_BASE_URL } from '../../services/apiConfig.js';
 
 export default function CropPassport() {
     const { t } = useLanguage();
@@ -15,8 +16,8 @@ export default function CropPassport() {
                 const token = localStorage.getItem('fc_token');
                 if (!token) return setLoading(false);
 
-                const pRes = await fetch('http://localhost:5002/api/farmers/me', { headers: { 'Authorization': `Bearer ${token}` } });
-                const cRes = await fetch('http://localhost:5002/api/crops', { headers: { 'Authorization': `Bearer ${token}` } });
+                const pRes = await fetch(`${API_BASE_URL}/api/farmers/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const cRes = await fetch(`${API_BASE_URL}/api/crops`, { headers: { 'Authorization': `Bearer ${token}` } });
 
                 if (pRes.ok && cRes.ok) {
                     const pData = await pRes.json();
@@ -57,7 +58,7 @@ export default function CropPassport() {
         setVerifying(true);
         try {
             const token = localStorage.getItem('fc_token');
-            const res = await fetch(`http://localhost:5002/api/crop-passports/${passportData.rawPassport.id}/register`, {
+            const res = await fetch(`${API_BASE_URL}/api/crop-passports/${passportData.rawPassport.id}/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
             });

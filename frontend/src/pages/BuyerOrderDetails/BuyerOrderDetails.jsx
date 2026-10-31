@@ -3,6 +3,7 @@ import { ArrowLeft, Package, Clock, Calendar, CheckCircle } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { getProductImage } from '../../utils/imageMapper';
 import { cleanString } from '../../utils/dataCleaner';
+import { API_BASE_URL } from '../../services/apiConfig.js';
 
 const staticOrders = {
     'FC-ORD-2026-001': {
@@ -58,7 +59,7 @@ export default function BuyerOrderDetails() {
 
             try {
                 const token = localStorage.getItem('fc_token');
-                const res = await fetch(`http://localhost:5002/api/orders/${id}`, {
+                const res = await fetch(`${API_BASE_URL}/api/orders/${id}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
@@ -67,7 +68,7 @@ export default function BuyerOrderDetails() {
 
                     // Fetch payment status
                     setFetchingPayment(true);
-                    const pRes = await fetch(`http://localhost:5002/api/payments/order/${id}`, {
+                    const pRes = await fetch(`${API_BASE_URL}/api/payments/order/${id}`, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     const pData = await pRes.json();
@@ -77,7 +78,7 @@ export default function BuyerOrderDetails() {
                     setFetchingPayment(false);
 
                     // Fetch blockchain status
-                    const bRes = await fetch(`http://localhost:5002/api/orders/${id}/blockchain-verification`, {
+                    const bRes = await fetch(`${API_BASE_URL}/api/orders/${id}/blockchain-verification`, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     const bData = await bRes.json();
@@ -108,7 +109,7 @@ export default function BuyerOrderDetails() {
 
         try {
             const token = localStorage.getItem('fc_token');
-            const res = await fetch(`http://localhost:5002/api/orders/${id}/blockchain-verify`, {
+            const res = await fetch(`${API_BASE_URL}/api/orders/${id}/blockchain-verify`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -135,7 +136,7 @@ export default function BuyerOrderDetails() {
             order_id: paymentData.razorpayOrderId,
             handler: async function (response) {
                 try {
-                    const verifyRes = await fetch('http://localhost:5002/api/payments/verify', {
+                    const verifyRes = await fetch(`${API_BASE_URL}/api/payments/verify`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -184,7 +185,7 @@ export default function BuyerOrderDetails() {
 
         try {
             const token = localStorage.getItem('fc_token');
-            const res = await fetch(`http://localhost:5002/api/payments/order/${id}/create`, {
+            const res = await fetch(`${API_BASE_URL}/api/payments/order/${id}/create`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

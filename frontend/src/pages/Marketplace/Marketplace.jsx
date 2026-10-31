@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, Trash2, Edit, Package, DollarSign, TrendingUp, Info } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { API_BASE_URL } from '../../services/apiConfig.js';
 
 // Indicative mandi prices (₹/kg) — reference only, not live data
 const MANDI_PRICES = {
@@ -38,7 +39,7 @@ export default function Marketplace() {
     const fetchMyProducts = async () => {
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:5002/api/products/my', {
+            const res = await fetch(`${API_BASE_URL}/api/products/my`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -62,7 +63,7 @@ export default function Marketplace() {
         setSaving(true);
 
         try {
-            const res = await fetch('http://localhost:5002/api/products', {
+            const res = await fetch(`${API_BASE_URL}/api/products`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -95,7 +96,7 @@ export default function Marketplace() {
         if (!window.confirm("Are you sure you want to delete this listing?")) return;
 
         try {
-            const res = await fetch(`http://localhost:5002/api/products/${id}`, {
+            const res = await fetch(`${API_BASE_URL}/api/products/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -111,7 +112,7 @@ export default function Marketplace() {
     const handleToggleStatus = async (id, currentStatus) => {
         const newStatus = currentStatus === 'AVAILABLE' ? 'UNAVAILABLE' : 'AVAILABLE';
         try {
-            const res = await fetch(`http://localhost:5002/api/products/${id}`, {
+            const res = await fetch(`${API_BASE_URL}/api/products/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,

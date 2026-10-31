@@ -9,6 +9,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { useVoiceInput } from '../../hooks/useVoiceInput';
 import { getProductImage } from '../../utils/imageMapper';
 import { sanitizeProductsList } from '../../utils/dataCleaner';
+import { API_BASE_URL } from '../../services/apiConfig.js';
 
 export default function BuyerDashboard() {
     const { lang, setLang, t } = useLanguage();
@@ -26,7 +27,7 @@ export default function BuyerDashboard() {
             if (!token) return;
             try {
                 // Fetch buyer profile
-                const bRes = await fetch('http://localhost:5002/api/buyers/me', { headers: { 'Authorization': `Bearer ${token}` } });
+                const bRes = await fetch(`${API_BASE_URL}/api/buyers/me`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (bRes.ok) {
                     const bData = await bRes.json();
                     if (bData?.buyer?.name) {
@@ -35,7 +36,7 @@ export default function BuyerDashboard() {
                 }
 
                 // Fetch Orders
-                const oRes = await fetch('http://localhost:5002/api/orders', { headers: { 'Authorization': `Bearer ${token}` } });
+                const oRes = await fetch(`${API_BASE_URL}/api/orders`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (oRes.ok) {
                     const data = await oRes.json();
                     setOrdersCount(data.orders?.length || 0);
@@ -44,7 +45,7 @@ export default function BuyerDashboard() {
                 }
 
                 // Fetch Marketplace
-                const pRes = await fetch('http://localhost:5002/api/marketplace', { headers: { 'Authorization': `Bearer ${token}` } });
+                const pRes = await fetch(`${API_BASE_URL}/api/marketplace`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (pRes.ok) {
                     const data = await pRes.json();
                     let san = sanitizeProductsList(data.products || []);

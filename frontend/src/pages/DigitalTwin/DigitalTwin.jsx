@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Leaf, MapPin, Sun, ShieldCheck, Activity, Info, Droplets, FlaskConical, Bug, ChevronRight, CheckCircle2, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
+import { API_BASE_URL } from '../../services/apiConfig.js';
 
 export default function DigitalTwin() {
     const { t } = useLanguage();
@@ -15,8 +16,8 @@ export default function DigitalTwin() {
                 const token = localStorage.getItem('fc_token');
                 if (!token) return setLoading(false);
 
-                const pRes = await fetch('http://localhost:5002/api/farmers/me', { headers: { 'Authorization': `Bearer ${token}` } });
-                const cRes = await fetch('http://localhost:5002/api/crops', { headers: { 'Authorization': `Bearer ${token}` } });
+                const pRes = await fetch(`${API_BASE_URL}/api/farmers/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const cRes = await fetch(`${API_BASE_URL}/api/crops`, { headers: { 'Authorization': `Bearer ${token}` } });
 
                 if (pRes.ok && cRes.ok) {
                     const profile = await pRes.json();
@@ -25,11 +26,11 @@ export default function DigitalTwin() {
                     let twin = null;
                     let insights = [];
                     if (crops.length > 0) {
-                        const tRes = await fetch(`http://localhost:5002/api/digital-twin/${crops[0].id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                        const tRes = await fetch(`${API_BASE_URL}/api/digital-twin/${crops[0].id}`, { headers: { 'Authorization': `Bearer ${token}` } });
                         if (tRes.ok) twin = await tRes.json();
 
                         try {
-                            const iRes = await fetch(`http://localhost:5002/api/digital-twin/${crops[0].id}/insights`, { headers: { 'Authorization': `Bearer ${token}` } });
+                            const iRes = await fetch(`${API_BASE_URL}/api/digital-twin/${crops[0].id}/insights`, { headers: { 'Authorization': `Bearer ${token}` } });
                             if (iRes.ok) {
                                 const iData = await iRes.json();
                                 if (iData.success) insights = iData.insights;
@@ -39,7 +40,7 @@ export default function DigitalTwin() {
 
                     let weather = null;
                     try {
-                        const wRes = await fetch('http://localhost:5002/api/weather', { headers: { 'Authorization': `Bearer ${token}` } });
+                        const wRes = await fetch(`${API_BASE_URL}/api/weather`, { headers: { 'Authorization': `Bearer ${token}` } });
                         if (wRes.ok) {
                             const wxData = await wRes.json();
                             if (wxData.success) weather = wxData.data;
@@ -172,7 +173,7 @@ export default function DigitalTwin() {
                                     </div>
                                 </div>
 
-                                <div style={{ position: 'absolute', bottom: '25%', left: '-20px', transform: 'translate(0, 50%)', display: 'flex', alignItems: 'center', gap: '8px', zIndex: 5 }}>
+                                <div style={{ position: 'absolute', top: '25%', bottom: '25%', left: '-20px', transform: 'translate(0, -50%)', display: 'flex', alignItems: 'center', gap: '8px', zIndex: 5 }}>
                                     <div>
                                         <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-green-deep)', textAlign: 'right', whiteSpace: 'nowrap' }}>{t('dt_nutrients') || 'Nutrients'}</div>
                                         <div style={{ fontSize: '0.7rem', color: 'var(--color-green-primary)', textAlign: 'right', whiteSpace: 'nowrap', fontWeight: 700 }}>NPK: {twin.soilN}:{twin.soilP}:{twin.soilK}</div>
@@ -180,7 +181,7 @@ export default function DigitalTwin() {
                                     <div style={{ padding: '8px', backgroundColor: 'var(--color-white)', borderRadius: '50%', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid var(--color-green-very-light)' }}><FlaskConical size={18} color="var(--color-green-primary)" /></div>
                                 </div>
 
-                                <div style={{ position: 'absolute', bottom: '25%', right: '-25px', transform: 'translate(0, 50%)', display: 'flex', alignItems: 'center', gap: '8px', zIndex: 5 }}>
+                                <div style={{ position: 'absolute', top: '25%', bottom: '25%', right: '-25px', transform: 'translate(0, -50%)', display: 'flex', alignItems: 'center', gap: '8px', zIndex: 5 }}>
                                     <div style={{ padding: '8px', backgroundColor: 'var(--color-bg-lightest)', borderRadius: '50%', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid var(--color-green-very-light)' }}><Bug size={18} color="var(--color-green-medium)" /></div>
                                     <div>
                                         <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-green-deep)', whiteSpace: 'nowrap' }}>{t('dt_pest_risk') || 'Pest Risk'}</div>
