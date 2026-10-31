@@ -406,7 +406,8 @@ export const translations = {
         my_orders: "My Orders",
         view_sales: "View Sales",
         list_harvest: "List your harvest",
-        new_listing: "New Listing",
+        new_listing: "New Listing"
+        ,
         err_mobile_incomplete: "I may not have heard exactly 10 digits. Please speak again clearly.",
         err_no_speech_synth: "Speech synthesis not supported on this browser.",
         err_voice_unavailable: "Voice not available for this language.",
@@ -485,7 +486,33 @@ export const translations = {
         harvest: "Harvest",
         buy_now: "Buy Now",
         grade_standard: "Standard",
-        grade_premium: "Premium"
+        grade_premium: "Premium",
+        // Buy Inputs page
+        buy_inputs_desc: "Redirects to verified sellers — Amazon, BigHaat & IndiaMART",
+        buy_inputs_disclaimer: "Prices shown are indicative. Actual price may vary by seller and region. FarmChain Assist is not affiliated with any marketplace.",
+        search_inputs_placeholder: "Search seeds, fertilizers...",
+        // Sell Crop page — kg-based labels
+        quantity_kg_label: "Quantity (kg)",
+        price_per_kg_label: "Price (₹/kg)",
+        price_per_kg: "Price / kg",
+        quantity_label: "Quantity",
+        unit_kg: "kg",
+        total_value: "Total Value",
+        create_listing_title: "Create New Listing",
+        crop_name: "Crop Name",
+        variety: "Variety",
+        publish_listing: "Publish Listing",
+        cancel: "Cancel",
+        edit_listing: "Edit Listing",
+        // Mandi price reference
+        mandi_price_suggestion: "Mandi Price Suggestion",
+        mandi_range: "Range",
+        mandi_modal: "Modal",
+        mandi_source_note: "Reference only — not live data.",
+        mandi_ref: "Mandi ref",
+        mandi_ref_note: "Not live data",
+        source: "Source",
+        last_updated: "Last updated"
     },
     kn: {
         welcome_back: "ಮತ್ತೆ ಸ್ವಾಗತ",
@@ -889,7 +916,8 @@ export const translations = {
         my_orders: "ನನ್ನ ಆರ್ಡರ್‌ಗಳು",
         view_sales: "ಮಾರಾಟವನ್ನು ವೀಕ್ಷಿಸಿ",
         list_harvest: "ನಿಮ್ಮ ಫಸಲನ್ನು ನಮೂದಿಸಿ",
-        new_listing: "ಹೊಸ ಪಟ್ಟಿ",
+        new_listing: "ಹೊಸ ಪಟ್ಟಿ"
+        ,
         err_mobile_incomplete: "I may not have heard exactly 10 digits. Please speak again clearly.",
         x: "English",
         err_no_speech_synth: "Your browser does not support text-to-speech engine.",
@@ -965,7 +993,32 @@ export const translations = {
         harvest: "ಕೊಯ್ಲು",
         buy_now: "ಈಗಲೇ ಖರೀದಿಸಿ",
         grade_standard: "ಸಾಮಾನ್ಯ",
-        grade_premium: "ಪ್ರೀಮಿಯಂ"
+        grade_premium: "ಪ್ರೀಮಿಯಂ",
+        // Buy Inputs page (Kannada)
+        buy_inputs_desc: "Amazon, BigHaat ಮತ್ತು IndiaMART ನ ದೃಢೀಕರಿಸಿದ ಮಾರಾಟಗಾರರಿಗೆ ನಿರ್ದೇಶಿಸಲಾಗುತ್ತದೆ",
+        buy_inputs_disclaimer: "ತೋರಿಸಿದ ಬೆಲೆಗಳು ಸಾಂಕೇತಿಕ. ನಿಜ ಬೆಲೆ ಮಾರಾಟಗಾರ ಮತ್ತು ಪ್ರದೇಶದ ಮೇಲೆ ಅವಲಂಬಿತ. FarmChain Assist ಯಾವುದೇ ಮಾರ್ಕೆಟ್ ಪ್ಲೇಸ್ ಜೊತೆ ಸಂಬಂಧಿಸಿಲ್ಲ.",
+        search_inputs_placeholder: "ಬೀಜಗಳು, ಗೊಬ್ಬರ ಹುಡುಕಿ...",
+        // Sell Crop page (Kannada)
+        quantity_kg_label: "ಪ್ರಮಾಣ (ಕೆ.ಜಿ.)",
+        price_per_kg_label: "ಬೆಲೆ (₹/ಕೆ.ಜಿ.)",
+        price_per_kg: "ಬೆಲೆ / ಕೆ.ಜಿ.",
+        quantity_label: "ಪ್ರಮಾಣ",
+        unit_kg: "ಕೆ.ಜಿ.",
+        create_listing_title: "ಹೊಸ ಪಟ್ಟಿ ರಚಿಸಿ",
+        crop_name: "ಬೆಳೆ ಹೆಸರು",
+        variety: "ತಳಿ",
+        publish_listing: "ಪಟ್ಟಿ ಪ್ರಕಟಿಸಿ",
+        cancel: "ರದ್ದು",
+        edit_listing: "ಪಟ್ಟಿ ತಿದ್ದಿ",
+        // Mandi price reference (Kannada)
+        mandi_price_suggestion: "ಮಂಡಿ ಬೆಲೆ ಸೂಚನೆ",
+        mandi_range: "ವ್ಯಾಪ್ತಿ",
+        mandi_modal: "ಮಾಡಲ್",
+        mandi_source_note: "ಕೇವಲ ಉಲ್ಲೇಖ — ನೇರ ಡೇಟಾ ಅಲ್ಲ.",
+        mandi_ref: "ಮಂಡಿ ಉಲ್ಲೇಖ",
+        mandi_ref_note: "ನೇರ ಡೇಟಾ ಅಲ್ಲ",
+        source: "ಮೂಲ",
+        last_updated: "ಕೊನೆಯ ಬಾರಿ ನವೀಕರಿಸಲಾಗಿದೆ"
     },
     hi: {
         welcome_back: "वापसी पर स्वागत है",
@@ -1369,7 +1422,8 @@ export const translations = {
         my_orders: "मेरे आदेश",
         view_sales: "बिक्री देखें",
         list_harvest: "अपनी फसल दर्ज करें",
-        new_listing: "नई लिस्टिंग",
+        new_listing: "नई लिस्टिंग"
+        ,
         err_mobile_incomplete: "I may not have heard exactly 10 digits. Please speak again clearly.",
         x: "English",
         err_no_speech_synth: "Your browser does not support text-to-speech engine.",
@@ -1445,6 +1499,31 @@ export const translations = {
         harvest: "फसल कटाई",
         buy_now: "अभी खरीदें",
         grade_standard: "सामान्य",
-        grade_premium: "प्रीमियम"
+        grade_premium: "प्रीमियम",
+        // Buy Inputs page (Hindi)
+        buy_inputs_desc: "Amazon, BigHaat और IndiaMART के सत्यापित विक्रेताओं पर रीडायरेक्ट करता है",
+        buy_inputs_disclaimer: "दिखाई गई कीमतें संकेतात्मक हैं। वास्तविक मूल्य विक्रेता और क्षेत्र के अनुसार भिन्न हो सकता है। FarmChain Assist किसी भी मार्केटप्लेस से संबद्ध नहीं है।",
+        search_inputs_placeholder: "बीज, खाद खोजें...",
+        // Sell Crop page (Hindi)
+        quantity_kg_label: "मात्रा (किग्रा)",
+        price_per_kg_label: "कीमत (₹/किग्रा)",
+        price_per_kg: "कीमत / किग्रा",
+        quantity_label: "मात्रा",
+        unit_kg: "किग्रा",
+        create_listing_title: "नई लिस्टिंग बनाएं",
+        crop_name: "फसल का नाम",
+        variety: "किस्म",
+        publish_listing: "लिस्टिंग प्रकाशित करें",
+        cancel: "रद्द करें",
+        edit_listing: "लिस्टिंग संपादित करें",
+        // Mandi price reference (Hindi)
+        mandi_price_suggestion: "मंडी मूल्य सुझाव",
+        mandi_range: "सीमा",
+        mandi_modal: "सामान्य",
+        mandi_source_note: "केवल संदर्भ — लाइव डेटा नहीं।",
+        mandi_ref: "मंडी संदर्भ",
+        mandi_ref_note: "लाइव डेटा नहीं",
+        source: "स्रोत",
+        last_updated: "अंतिम अपडेट"
     }
 };

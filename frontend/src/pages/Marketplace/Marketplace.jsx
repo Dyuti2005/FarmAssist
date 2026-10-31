@@ -1,6 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Trash2, Edit, Package, DollarSign } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Edit, Package, DollarSign, TrendingUp, Info } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+// Indicative mandi prices (₹/kg) — reference only, not live data
+const MANDI_PRICES = {
+    wheat: { min: 21, max: 26, modal: 23, source: 'Agmarknet / MSP ref', updated: 'Oct 2026' },
+    rice: { min: 22, max: 32, modal: 27, source: 'Agmarknet / MSP ref', updated: 'Oct 2026' },
+    maize: { min: 17, max: 22, modal: 19, source: 'Agmarknet / MSP ref', updated: 'Oct 2026' },
+    tomato: { min: 12, max: 35, modal: 20, source: 'Agmarknet (seasonal)', updated: 'Oct 2026' },
+    onion: { min: 8, max: 22, modal: 14, source: 'Agmarknet (seasonal)', updated: 'Oct 2026' },
+    potato: { min: 10, max: 18, modal: 13, source: 'Agmarknet (seasonal)', updated: 'Oct 2026' },
+    soybean: { min: 38, max: 48, modal: 43, source: 'Agmarknet / MSP ref', updated: 'Oct 2026' },
+    cotton: { min: 58, max: 72, modal: 65, source: 'Agmarknet / MSP ref', updated: 'Oct 2026' },
+    mustard: { min: 50, max: 60, modal: 55, source: 'Agmarknet / MSP ref', updated: 'Oct 2026' },
+    chickpea: { min: 48, max: 58, modal: 53, source: 'Agmarknet / MSP ref', updated: 'Oct 2026' },
+};
 
 export default function Marketplace() {
     const [products, setProducts] = useState([]);
@@ -123,7 +137,7 @@ export default function Marketplace() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
                 <div>
                     <h1 style={{ color: 'var(--color-green-deep)', fontSize: '2rem', fontWeight: 900, marginBottom: '8px', letterSpacing: '-0.02em' }}>Produce Listings</h1>
-                    <p style={{ color: 'var(--color-green-dark)', fontSize: '1.05rem', fontWeight: 500 }}>Manage crops you are selling on the marketplace.</p>
+                    <p style={{ color: 'var(--color-green-dark)', fontSize: '1.05rem', fontWeight: 500 }}>Manage crops you are selling on the marketplace. Quantities and prices are in <strong>kg</strong> and <strong>₹/kg</strong>.</p>
                 </div>
                 {!showForm && (
                     <button onClick={() => setShowForm(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px', backgroundColor: 'var(--color-green-primary)', color: 'white', borderRadius: '12px', border: 'none', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(22, 138, 74, 0.2)' }}>
@@ -155,13 +169,36 @@ export default function Marketplace() {
                             <select value={formData.unit} onChange={e => setFormData({ ...formData, unit: e.target.value })} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--color-green-light)', backgroundColor: 'var(--color-bg-lightest)', color: 'var(--color-green-deep)', outline: 'none', appearance: 'none', cursor: 'pointer' }}>
                                 <option value="kg">Kilograms (kg)</option>
                                 <option value="tonnes">Tonnes (t)</option>
-                                <option value="quintal">Quintal</option>
                             </select>
                         </div>
                         <div>
-                            <label style={{ display: 'block', color: 'var(--color-green-dark)', fontWeight: 600, marginBottom: '8px' }}>Price per unit (₹)</label>
-                            <input type="number" required min="1" step="1" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--color-green-light)', backgroundColor: 'var(--color-bg-lightest)', color: 'var(--color-green-deep)', outline: 'none' }} placeholder="e.g. 35" />
+                            <label style={{ display: 'block', color: 'var(--color-green-dark)', fontWeight: 600, marginBottom: '8px' }}>Price per kg (₹)</label>
+                            <input type="number" required min="0.01" step="0.01" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--color-green-light)', backgroundColor: 'var(--color-bg-lightest)', color: 'var(--color-green-deep)', outline: 'none' }} placeholder="e.g. 23.00" />
                         </div>
+
+                        {/* Mandi price reference panel */}
+                        {(() => {
+                            const key = formData.productName.toLowerCase().trim();
+                            const found = Object.entries(MANDI_PRICES).find(([k]) => key.includes(k));
+                            if (!found) return null;
+                            const [cropKey, mp] = found;
+                            return (
+                                <div style={{ gridColumn: '1 / -1', backgroundColor: '#F1F8E9', borderRadius: '12px', padding: '14px 18px', border: '1px solid #C5E1A5', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                                    <TrendingUp size={20} color="#388E3C" style={{ marginTop: '2px', flexShrink: 0 }} />
+                                    <div>
+                                        <div style={{ fontWeight: 800, color: '#2E7D32', fontSize: '0.9rem', marginBottom: '4px' }}>Mandi Price Reference — {cropKey.charAt(0).toUpperCase() + cropKey.slice(1)}</div>
+                                        <div style={{ color: '#388E3C', fontSize: '0.85rem', fontWeight: 600 }}>Range: ₹{mp.min}–₹{mp.max}/kg &nbsp;|&nbsp; Modal: <strong>₹{mp.modal}/kg</strong></div>
+                                        <div style={{ color: '#777', fontSize: '0.78rem', marginTop: '4px' }}>
+                                            <Info size={12} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
+                                            Reference only — not live data. Source: {mp.source}. Last updated: {mp.updated}.
+                                        </div>
+                                        <button type="button" onClick={() => setFormData(prev => ({ ...prev, price: mp.modal }))} style={{ marginTop: '8px', padding: '5px 14px', backgroundColor: '#E8F5E9', border: '1px solid #A5D6A7', borderRadius: '8px', color: '#2E7D32', fontWeight: 700, cursor: 'pointer', fontSize: '0.82rem' }}>
+                                            Use Modal Price ₹{mp.modal}/kg
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })()}
 
                         <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '16px', marginTop: '16px' }}>
                             <button type="button" onClick={() => setShowForm(false)} style={{ padding: '12px 24px', backgroundColor: 'transparent', border: '2px solid var(--color-green-light)', borderRadius: '12px', color: 'var(--color-green-dark)', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
